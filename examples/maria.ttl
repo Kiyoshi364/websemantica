@@ -1,0 +1,36 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix dbr: <http://dbpedia.org/resource/> .
+
+@prefix : <http://example.org/> .
+
+:Maria
+  rdf:type foaf:Person ;
+  foaf:name "Maria" ;
+  dbo:birthPlace dbr:Brazil ;
+  dbo:birthDate "1980-06-15-03"^^xsd:date ;
+  foaf:knows :Joao
+.
+
+:Joao
+  rdf:type foaf:Person ;
+  foaf:name "João" ;
+  foaf:interest :MonaLisa
+.
+
+:MonaLisa
+  owl:sameAs dbr:Mona_Lisa ;
+  rdfs:label "Mona Lisa"@en ;
+  dc:creator dbr:Leonardo_da_Vinci ;
+  dbo:museum :Louvre
+.
+
+:Louvre
+  owl:sameAs dbr:Louvre ;
+  dbo:location dbr:France
+.
