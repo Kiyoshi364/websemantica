@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:ns0="http://dbpedia.org/ontology/"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:dc11="http://purl.org/dc/elements/1.1/">
+
+  <foaf:Person rdf:about="http://example.org/Maria">
+    <foaf:name>Maria</foaf:name>
+    <ns0:birthPlace rdf:resource="http://dbpedia.org/resource/Brazil"/>
+    <ns0:birthDate rdf:datatype="http://www.w3.org/2001/XMLSchema#date">1980-06-15-03</ns0:birthDate>
+    <foaf:knows>
+      <foaf:Person rdf:about="http://example.org/Joao">
+        <foaf:name>João</foaf:name>
+        <foaf:interest>
+          <rdf:Description rdf:about="http://example.org/MonaLisa">
+            <owl:sameAs rdf:resource="http://dbpedia.org/resource/Mona_Lisa"/>
+            <rdfs:label xml:lang="en">Mona Lisa</rdfs:label>
+            <dc11:creator rdf:resource="http://dbpedia.org/resource/Leonardo_da_Vinci"/>
+            <ns0:museum>
+              <rdf:Description rdf:about="http://example.org/Louvre">
+                <owl:sameAs rdf:resource="http://dbpedia.org/resource/Louvre"/>
+                <ns0:location rdf:resource="http://dbpedia.org/resource/France"/>
+              </rdf:Description>
+            </ns0:museum>
+
+          </rdf:Description>
+        </foaf:interest>
+
+      </foaf:Person>
+    </foaf:knows>
+
+  </foaf:Person>
+
+</rdf:RDF>

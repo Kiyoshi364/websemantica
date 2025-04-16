@@ -1,0 +1,82 @@
+[
+  {
+    "@id": "http://example.org/Joao",
+    "@type": [
+      "http://xmlns.com/foaf/0.1/Person"
+    ],
+    "http://xmlns.com/foaf/0.1/interest": [
+      {
+        "@id": "http://example.org/MonaLisa"
+      }
+    ],
+    "http://xmlns.com/foaf/0.1/name": [
+      {
+        "@value": "João"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.org/MonaLisa",
+    "http://dbpedia.org/ontology/museum": [
+      {
+        "@id": "http://example.org/Louvre"
+      }
+    ],
+    "http://purl.org/dc/elements/1.1/creator": [
+      {
+        "@id": "http://dbpedia.org/resource/Leonardo_da_Vinci"
+      }
+    ],
+    "http://www.w3.org/2000/01/rdf-schema#label": [
+      {
+        "@language": "en",
+        "@value": "Mona Lisa"
+      }
+    ],
+    "http://www.w3.org/2002/07/owl#sameAs": [
+      {
+        "@id": "http://dbpedia.org/resource/Mona_Lisa"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.org/Maria",
+    "@type": [
+      "http://xmlns.com/foaf/0.1/Person"
+    ],
+    "http://dbpedia.org/ontology/birthDate": [
+      {
+        "@type": "http://www.w3.org/2001/XMLSchema#date",
+        "@value": "1980-06-15"
+      }
+    ],
+    "http://dbpedia.org/ontology/birthPlace": [
+      {
+        "@id": "http://dbpedia.org/resource/Brazil"
+      }
+    ],
+    "http://xmlns.com/foaf/0.1/knows": [
+      {
+        "@id": "http://example.org/Joao"
+      }
+    ],
+    "http://xmlns.com/foaf/0.1/name": [
+      {
+        "@value": "Maria"
+      }
+    ]
+  },
+  {
+    "@id": "http://example.org/Louvre",
+    "http://dbpedia.org/ontology/location": [
+      {
+        "@id": "http://dbpedia.org/resource/France"
+      }
+    ],
+    "http://www.w3.org/2002/07/owl#sameAs": [
+      {
+        "@id": "http://dbpedia.org/resource/Louvre"
+      }
+    ]
+  }
+]
