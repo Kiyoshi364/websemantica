@@ -29,7 +29,8 @@ final_pos(P) --> [P].
 loc(L), [L] --> [L].
 
 char(C) --> char(C, _).
-char(C0, P0), [P] --> [P0, C0], { char_pos(C0, P0, P) }.
+char(C0, P0), [P] --> [P0, C0], !, { char_pos(C0, P0, P) }.
+char(C0, P0) --> [P0], { C0 = eof }.
 
 unchar(C, P), [P, C] --> [P0], { char_pos(C, P, P0) }.
 
