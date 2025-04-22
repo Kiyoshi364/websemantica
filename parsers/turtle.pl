@@ -3,51 +3,49 @@
 :- use_module(library(dcgs), []).
 :- use_module(library(reif), [if_/3, (=)/3, memberd_t/3]).
 
-matcheq(Elem, Cases) :- matcheq_t_impl(Cases, Elem).
-
-matcheq_impl([], _).
-matcheq_impl([C-Then | Cases], E) :-
-  if_(E = C,
-    ( call(Then), T = true ),
-    matcheq_t_impl(Cases, E, T)
-  ).
-
-matcheq(Elem, Cases, S0, S) :- matcheq_t_impl(Cases, Elem, S0, S).
-
-matcheq_impl([], _, false).
-matcheq_impl([C-Then | Cases], E, T) :-
-  if_(E = C,
-    ( call(Then), T = true ),
-    matcheq_t_impl(Cases, E, T)
-  ).
-
 :- use_module(reif_dcgs, [if_//3]).
 
-:- use_module(linecol, [char//1, unchar//1]).
+matcheq(Elem, Cases) --> matcheq_impl(Cases, Elem, Cases).
+
+matcheq_impl([], E, Cases) --> { throw(error(unreachable_match(E, Cases))) }.
+matcheq_impl([If_2-Then | Cs], E, Cases) -->
+  if_(call(If_2, E), Then, matcheq_impl(Cs, E, Cases)).
+
+:- use_module(linecol, [char//2, unchar//2]).
 
 :- use_module(library(debug)).
 
 ws_t(C, T) :- memberd_t(C, " \t", T).
-
-comma --> char(',').
-semi --> char(';').
-dot --> char('.').
-
+eof_t(C, T) :- =(eof, C, T).
 comment_t(C, T) :- =('#', C, T).
-comment(Comment, P) -->
-  char(C, P),
-  if_(comment_t(C),
-    ( skip_comment(Comment, PL), { L = '\n' } ),
-    { L = C, PL = P }
-  ),
-  unchar(L, PL).
 
-skip_comment(Comment, PL) -->
+comma_t(C, T) :- =(',', C, T).
+semi_t(C, T) :- =(';', C, T).
+dot_t(C, T) :- =('.', C, T).
+
+comment(Comment) -->
   char(C, P),
   if_(C = '\n',
-    { Comment = [], PL = P },
-    ( { Comment = [C|T] }, skip_comment(T, PL) )
+    ( { Comment = [] }, unchar(C, P) ),
+    if_(C = eof,
+      { Comment = [] },
+      ( { Comment = [C|T] }, comment(T) )
+    )
   ).
+
+id(C0, C0) --> [].
+
+token(T, P) -->
+  char(C0, P0),
+  matcheq(C0, [
+    ws_t      - token(T, P),
+    eof_t     - { T = eof, P = P0 },
+    comment_t - ( { T = comment(C), P = P0 }, comment(C) ),
+    comma_t   - { T = comma, P = P0 },
+    semi_t    - { T = semi, P = P0 },
+    dot_t     - { T = dot, P = P0 },
+    =(C0 )    - ( { T = id(ID), P = P0 }, id(C0, ID) )
+  ]).
 
 simple_triple(Subj, Pred, Obj) -->
   node(sub, Subj), ws_, node(pred, Pred), ws_, node(obj, Obj).
