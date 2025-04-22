@@ -1,4 +1,4 @@
-% :- module(ntriples).
+% :- module(turtle).
 
 :- use_module(library(dcgs), []).
 :- use_module(library(reif), [if_/3, (=)/3, memberd_t/3]).
@@ -25,20 +25,37 @@ matcheq_impl([C-Then | Cases], E, T) :-
 
 :- use_module(linecol, [char//1, unchar//1]).
 
-ws --> char(C), { memberd_t(C, " \t", true) }.
+:- use_module(library(debug)).
+
+ws_t(C, T) :- memberd_t(C, " \t", T).
+
 comma --> char(',').
 semi --> char(';').
 dot --> char('.').
 
-comment -->
-  char(C),
-  if_(C = '#',
-    ( skip_comment, { L = '\n' } ),
-    { L = C }
+comment_t(C, T) :- =('#', C, T).
+comment(Comment, P) -->
+  char(C, P),
+  if_(comment_t(C),
+    ( skip_comment(Comment, PL), { L = '\n' } ),
+    { L = C, PL = P }
   ),
-  unchar(L).
+  unchar(L, PL).
 
-skip_comment --> char(C), if_(C = '\n', [], skip_comment).
+skip_comment(Comment, PL) -->
+  char(C, P),
+  if_(C = '\n',
+    { Comment = [], PL = P },
+    ( { Comment = [C|T] }, skip_comment(T, PL) )
+  ).
 
 simple_triple(Subj, Pred, Obj) -->
-  thing(Subj), ws_, thing(Pred), ws_, thing(Obj).
+  node(sub, Subj), ws_, node(pred, Pred), ws_, node(obj, Obj).
+
+node(Kind, A, S0, S) -->
+  ( { S = S0 }, iri(A)
+  ; { S = S0 }, literal(A)
+  ; { S = S0, state_prefix(S, SP) }, prefixed(SP, A)
+  ; { state_blank(S0, S, SB0, SB) }, blank_node(A, SB0, SB) % Kind != pred
+  ; { S = S0 }, collection(A)
+  ).
