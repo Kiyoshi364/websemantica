@@ -15,13 +15,18 @@ matcheq_impl([If_2-Then | Cs], E, Cases) -->
 
 :- use_module(library(debug)).
 
-ws_t(C, T) :- memberd_t(C, " \t", T).
+ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
+quote_t(C, T) :- memberd_t(C, "\'\"", T).
+
 eof_t(C, T) :- =(eof, C, T).
 comment_t(C, T) :- =('#', C, T).
 
+under_t(C, T) :- =('_', C, T).
+colon_t(C, T) :- =(':', C, T).
 comma_t(C, T) :- =(',', C, T).
 semi_t(C, T) :- =(';', C, T).
 dot_t(C, T) :- =('.', C, T).
+at_t(C, T) :- =('@', C, T).
 
 comment(Comment) -->
   char(C, P),
@@ -33,6 +38,10 @@ comment(Comment) -->
     )
   ).
 
+string(C0, L0, tkn(L0, string(C0))) -->
+  % TODO
+[].
+
 id(C0, L0, tkn(L0, id(C0))) --> [].
 
 token(T) -->
@@ -41,11 +50,19 @@ token(T) -->
     ws_t      - token(T),
     eof_t     - { T = eof },
     comment_t - ( { T = tkn(L0, comment(C)) }, comment(C) ),
+    under_t   - { T = tkn(L0, underscore) },
+    colon_t   - { T = tkn(L0, colon) },
     comma_t   - { T = tkn(L0, comma) },
     semi_t    - { T = tkn(L0, semi) },
     dot_t     - { T = tkn(L0, dot) },
+    at_t      - { T = tkn(L0, at) },
+    =('(')    - { T = tkn(L0, open_par) },
+    =(')')    - { T = tkn(L0, close_par) },
     =('[')    - { T = tkn(L0, open_square) },
     =(']')    - { T = tkn(L0, close_square) },
+    =('<')    - { T = tkn(L0, open_angle) },
+    =('>')    - { T = tkn(L0, close_angle) },
+    quote_t   - string(C0, L0, T),
     =(C0 )    - id(C0, L0, T)
   ]).
 
