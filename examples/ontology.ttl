@@ -1,0 +1,28 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://example.org/schemas/vehicles#> .
+
+ex:MotorVehicle rdf:type rdfs:Class .
+ex:PassengerVehicle rdf:type rdfs:Class .
+ex:Van rdf:type rdfs:Class .
+ex:Truck rdf:type rdfs:Class .
+ex:MiniVan rdf:type rdfs:Class .
+
+ex:PassengerVehicle rdfs:subClassOf ex:MotorVehicle .
+ex:Van rdfs:subClassOf ex:MotorVehicle .
+ex:Truck rdfs:subClassOf ex:MotorVehicle .
+
+ex:MiniVan rdfs:subClassOf ex:Van .
+ex:MiniVan rdfs:subClassOf ex:PassengerVehicle .
+
+# ---------- ---------- ---------- ----------
+
+ex:Pessoa rdf:type rdfs:Class .
+
+ex:ProprietarioVP
+  rdf:type rdf:Property ;
+  rdfs:domain ex:PassengerVehicle ;
+  rdfs:range ex:Pessoa
+.
+
+ex:BRA2023 ex:ProprietarioVP ex:Maria.
