@@ -1,0 +1,21 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix simtree: <http://example.org/simtree#> .
+
+simtree:State rdf:type rdfs:Class .
+simtree:Transition rdf:type rdfs:Class .
+simtree:StateTransition rdf:type rdfs:Class .
+
+simtree:step_to
+  rdf:type rdf:Property ;
+  rdfs:domain rdf:State ;
+  rdfs:range rdf:State
+.
+
+simtree:step_withto
+  rdf:type rdf:Property ;
+  rdfs:domain rdf:State ;
+  rdfs:range rdf:StateTransition
+.
+
+# TODO: say that one relation is a subset of the other
