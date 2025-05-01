@@ -1,0 +1,128 @@
+@prefix : <http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/> .
+
+<http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2> rdf:type owl:Ontology .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/email
+:email rdf:type owl:ObjectProperty ;
+       rdfs:subPropertyOf owl:topObjectProperty ;
+       rdfs:domain :OrganizaçãoOrPessoa ;
+       rdfs:range :Email .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/homepage
+:homepage rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf owl:topObjectProperty ;
+          rdfs:domain :OrganizaçãoOrPessoa ;
+          rdfs:range :Documento .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/homepage_local_trabalho
+:homepage_local_trabalho rdf:type owl:ObjectProperty ;
+                         rdfs:subPropertyOf owl:topObjectProperty ;
+                         rdfs:domain :Pessoa ;
+                         rdfs:range :Documento .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/nome
+:nome rdf:type owl:DatatypeProperty ;
+      rdfs:subPropertyOf owl:topDataProperty ;
+      rdfs:domain :OrganizaçãoOrPessoa ;
+      rdfs:range xsd:string .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Documento
+:Documento rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Email
+:Email rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Organização
+:Organização rdf:type owl:Class ;
+             rdfs:subClassOf :OrganizaçãoOrPessoa .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/OrganizaçãoOrPessoa
+:OrganizaçãoOrPessoa rdf:type owl:Class .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Pessoa
+:Pessoa rdf:type owl:Class ;
+        rdfs:subClassOf :OrganizaçãoOrPessoa .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#jose@x.org
+<http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#jose@x.org> rdf:type owl:NamedIndividual ,
+                                                                                                   :Email .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#orgx@x.org
+<http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#orgx@x.org> rdf:type owl:NamedIndividual ,
+                                                                                                   :Email .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Jose_da_Silva
+:Jose_da_Silva rdf:type owl:NamedIndividual ,
+                        :Pessoa ;
+               :homepage :Página_Web_Jose ;
+               :homepage_local_trabalho :Página_Organização_X ;
+               :nome "José da Silva" .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Organização_X
+:Organização_X rdf:type owl:NamedIndividual ,
+                        :Organização ;
+               :email <http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#orgx@x.org> ;
+               :homepage :Página_Organização_X ;
+               :nome "Organização X Ltda" .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Página_Organização_X
+:Página_Organização_X rdf:type owl:NamedIndividual ,
+                               :Documento .
+
+
+###  http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2/Página_Web_Jose
+:Página_Web_Jose rdf:type owl:NamedIndividual ,
+                          :Documento .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDifferent ;
+  owl:distinctMembers ( <http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#jose@x.org>
+                        <http://www.semanticweb.org/dkhashimoto/ontologies/2025/3/untitled-ontology-2#orgx@x.org>
+                        :Jose_da_Silva
+                        :Organização_X
+                        :Página_Organização_X
+                        :Página_Web_Jose
+                      )
+] .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

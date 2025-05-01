@@ -1,0 +1,42 @@
+# Ontologia inicial (Sem FOAF)
+
+A ontologia foi feita
+a partir do exemplo.
+Os tipos/classes adicionados
+que não aparecem explícitamente
+no exemplo
+são:
+1. `:Email`: os emails são objetos/links/IRIs internos,
+  esse é o tipo deles.
+2. `:OrganizaçãoOuPessoa`: supertipo/superclasse de
+  tanto `:Organização` quanto `:Pessoa`;
+  usado para domínio de predicados, como `:homepage` e `:email`
+
+# Usando FOAF
+
+A modelagem usando FOAF
+foi feita "na mão"
+(eu prefiro usar ferramentas textuais,
+como um editor de texto e programação
+para construir os grafos).
+
+Usando essa ontologia,
+ambos as modelagens
+(apenas objetos, não tipos/classes e predicados)
+são isomorfas
+(estruturalmente iguais, mas talvez com nomes diferentes).
+Para cada predicado na minha ontologia,
+existia um predicado
+estruturalmente e semanticamente equivalentes
+no FOAF.
+Por exemplo,
+`:homepage` é equivalente a `foaf:homepage`
+e
+`:email` é equivalente a `foaf:mbox`.
+
+Uma diferença notável foi na representação do email.
+Não existe um tipo/classe `foaf:Email`.
+Como indicado pela professora,
+geralmente se usa IRIs com protocolo `mailto`
+para emails.
+A modelagem usando `foaf` usa essas IRIs.

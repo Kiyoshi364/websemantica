@@ -1,0 +1,27 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+@prefix : <http://example.org/hashi#> .
+
+:Jose_da_Silva
+  rdf:type foaf:Person ;
+  foaf:name "José da Silva"@pt ;
+  foaf:mbox <mailto://jose@x.org> ;
+  foaf:homepage :Página_Web_Jose ;
+  foaf:workplaceHomepage :Página_Organização_X
+.
+
+:Organização_X
+  rdf:type foaf:Organization ;
+  foaf:name "Organização X"@pt ;
+  foaf:homepage :Página_Organização_X ;
+  foaf:mbox <mailto://orgx@x.org>
+.
+
+:Página_Web_Jose
+  rdf:type foaf:Document
+.
+
+:Página_Organização_X
+  rdf:type foaf:Document
+.
