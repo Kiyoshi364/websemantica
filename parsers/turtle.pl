@@ -99,6 +99,33 @@ escape(C) -->
     =(C0)    - { throw(error(invalid_escapechar_at(C0, P0))) }
   ]).
 
+string_single_single(S) -->
+  char(C0, P0),
+  if_(C0 = '\'',
+    ( string_single3(S) ),
+    ( { S = [] }, unchar(C0, P0) )
+  ).
+
+string_single(S) -->
+  char(C0, P0),
+  if_(C0 = '\'',
+    string_single_single(S),
+    string_single_(C0, P0, S)
+  ).
+
+string_single_(C0, P0, S) -->
+  matcheq(C0, [
+    eof_t    - { throw(error(unclosed_singlequotechar)) },
+    =('\n')  - { throw(error(invalid_singlequotechar_at(C0, P0))) },
+    =('\'')  - { S = [] },
+    =(\)     - ( { S = [E0 | S1] }, escape(E0), char(C1, P1), string_single_(C1, P1, S1) ),
+    =(C0)    - ( { S = [C0 | S1] }, char(C1, P1), string_single_(C1, P1, S1) )
+  ]).
+
+string_single3(C0, P0, S) -->
+  % TODO
+[].
+
 string(C0, L0, tkn(L0, string(C0))) -->
   % TODO
 [].
@@ -123,6 +150,7 @@ token(T) -->
     =(']')    - { T = tkn(L0, close_square) },
     =('<')    - { T = tkn(L0, open_angle) },
     =('>')    - { T = tkn(L0, close_angle) },
+    =('\'')   - ( { T = tkn(L0, string(S)) }, string_single(S) ),
     quote_t   - string(C0, L0, T),
     =(C0 )    - id(C0, L0, T)
   ]).
