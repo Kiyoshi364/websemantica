@@ -3,8 +3,9 @@
 **/
 % :- module(turtle).
 
+:- use_module(library(lists), [length/2, foldl/4]).
 :- use_module(library(dcgs), []).
-:- use_module(library(reif), [(=)/3, memberd_t/3]).
+:- use_module(library(reif), [if_/3, (=)/3, memberd_t/3]).
 
 :- use_module(reif_dcgs, [if_//3]).
 
@@ -40,6 +41,63 @@ comment(Comment) -->
       ( { Comment = [C|T] }, comment(T) )
     )
   ).
+
+hexchar_to_num('0', 0).
+hexchar_to_num('1', 1).
+hexchar_to_num('2', 2).
+hexchar_to_num('3', 3).
+hexchar_to_num('4', 4).
+hexchar_to_num('5', 5).
+hexchar_to_num('6', 6).
+hexchar_to_num('7', 7).
+hexchar_to_num('8', 8).
+hexchar_to_num('9', 9).
+hexchar_to_num('a', 10).
+hexchar_to_num('b', 11).
+hexchar_to_num('c', 12).
+hexchar_to_num('d', 13).
+hexchar_to_num('e', 14).
+hexchar_to_num('f', 15).
+hexchar_to_num('A', 10).
+hexchar_to_num('B', 11).
+hexchar_to_num('C', 12).
+hexchar_to_num('D', 13).
+hexchar_to_num('E', 14).
+hexchar_to_num('F', 15).
+
+hex(H) -->
+  char(C, P),
+  { if_(memberd_t(C, "0123456789abcdefABCDEF"),
+      hexchar_to_num(C, H),
+      throw(error(invalid_hex_at(C, P)))
+    )
+  }.
+
+nibble_acc_revconcat(R, L, B) :- B is (L << 4) + R.
+
+escape_u_len(C, Len) -->
+  { length(Ns, Len) },
+  foldl(hex, Ns),
+  { foldl(nibble_acc_revconcat, Ns, 0, N), char_code(C, N) }.
+
+escape_u(C) --> escape_u_len(C, 4).
+escape_U(C) --> escape_u_len(C, 8).
+
+escape(C) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =(t)     - { C = '\t' },
+    =(b)     - { C = '\b' },
+    =(n)     - { C = '\n' },
+    =(r)     - { C = '\r' },
+    =(f)     - { C = '\f' },
+    =('\"')  - { C = '\"' },
+    =('\'')  - { C = '\'' },
+    =(\)     - { C = (\) },
+    =('u')   - escape_u(C),
+    =('U')   - escape_U(C),
+    =(C0)    - { throw(error(invalid_escapechar_at(C0, P0))) }
+  ]).
 
 string(C0, L0, tkn(L0, string(C0))) -->
   % TODO
