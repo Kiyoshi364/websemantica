@@ -171,7 +171,7 @@ literal(X, Tkn0, Tkn) -->
     /* 6.5 [13 case 0] */
     string(Str) - ( token(Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
     /* 6.5 [16] (inlined) [13 case 1] */
-    number(N)   - ( { X = literal(number, N) }, token(Tkn) )
+    number(N)   - ( { X = literal(number, N) }, token(Tkn) ),
     /* 6.5 [133s] (inlined) [13 case 2] */
     boolean(B)  - ( { X = literal(boolean, B) }, token(Tkn) )
   ]).
