@@ -1,7 +1,9 @@
 /*
  * Reference: www.w3.org/TR/turtle
 **/
-% :- module(turtle).
+:- module(turtle, [
+  token//1
+]).
 
 :- use_module(library(lists), [length/2, foldl/4]).
 :- use_module(library(dcgs), []).
@@ -136,8 +138,8 @@ token(T) -->
   char(C0, L0),
   matcheq(C0, [
     ws_t      - token(T),
-    eof_t     - { T = eof },
-    comment_t - ( { T = tkn(L0, comment(C)) }, comment(C) ),
+    eof_t     - { T = tkn(L0, eof) },
+    comment_t - ( comment(C), token(T) ),
     under_t   - { T = tkn(L0, underscore) },
     colon_t   - { T = tkn(L0, colon) },
     comma_t   - { T = tkn(L0, comma) },
