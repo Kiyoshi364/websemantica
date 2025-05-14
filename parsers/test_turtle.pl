@@ -74,6 +74,12 @@ test_tokenizer_string_single :-
   meta_test_tokenizer_output(In, Out),
 true.
 
+test_tokenizer_string_single_escapes :-
+  In = "'asdf\\t\\b\\n\\r\\f\\'\\\"\\\\qwer'",
+  Out = [tkn(pos(0,0,0), string("asdf\t\b\n\r\f\'\"\\qwer")), tkn(pos(0,26,26), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
 % TODO: more string tests
 
   % meta_test_tokenizer_output(In, Out, Xa, Xb),
