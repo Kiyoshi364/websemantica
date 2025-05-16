@@ -21,6 +21,7 @@ matcheq_impl([If_2-Then | Cs], E, Cases) -->
 
 :- use_module(library(debug)).
 
+hex_t(C, T) :- memberd_t(C, "0123456789abcdefABCDEF", T).
 ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
 quote_t(C, T) :- memberd_t(C, "\'\"", T).
 
@@ -72,7 +73,7 @@ hexchar_to_num('F', 15).
 
 hex(H) -->
   char(C, P),
-  { if_(memberd_t(C, "0123456789abcdefABCDEF"),
+  { if_(hex_t(C),
       hexchar_to_num(C, H),
       throw(error(invalid_hex_at(C, P)))
     )
