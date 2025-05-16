@@ -104,14 +104,55 @@ test_tokenizer_string_longsingle_escapes_uU :-
   meta_test_tokenizer_output(In, Out),
 true.
 
-% TODO: more string tests
-% TODO: test string error cases
+test_tokenizer_string_longsingle_specific_chars :-
+  In = "'''asdf'qw''zxcvg'\r\n'lalala' b'''",
+  Out = [tkn(pos(0,0,0), string("asdf'qw''zxcvg'\r\n'lalala' b")), tkn(pos(1,13,33), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
 
-  % meta_test_tokenizer_output(In, Out, Xa, Xb),
-  % writen(Xa),
-  % writen(Xb),
-  % writen(aaaa),
-  % false,
+test_tokenizer_string_double :-
+  In = "\"asdf qwer 1234\"",
+  Out = [tkn(pos(0,0,0), string("asdf qwer 1234")), tkn(pos(0,16,16), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_double_escapes :-
+  In = "\"asdf\\t\\b\\n\\r\\f\\'\\\"\\\\qwer\"",
+  Out = [tkn(pos(0,0,0), string("asdf\t\b\n\r\f\'\"\\qwer")), tkn(pos(0,26,26), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_double_escapes_uU :-
+  In = "\"\\uabcd\\U0010cdef\"",
+  Out = [tkn(pos(0,0,0), string("\xabcd\\x0010cdef\")), tkn(pos(0,18,18), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longdouble :-
+  In = "\"\"\"asdf qwer 1234\"\"\"",
+  Out = [tkn(pos(0,0,0), string("asdf qwer 1234")), tkn(pos(0,20,20), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longdouble_escapes :-
+  In = "\"\"\"asdf\\t\\b\\n\\r\\f\\'\\\"\\\\qwer\"\"\"",
+  Out = [tkn(pos(0,0,0), string("asdf\t\b\n\r\f\'\"\\qwer")), tkn(pos(0,30,30), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longdouble_escapes_uU :-
+  In = "\"\"\"\\uabcd\\U0010cdef\"\"\"",
+  Out = [tkn(pos(0,0,0), string("\xabcd\\x0010cdef\")), tkn(pos(0,22,22), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longdouble_specific_chars :-
+  In = "\"\"\"asdf\"qw\"\"zxcvg\"\r\n\"lalala\" b\"\"\"",
+  Out = [tkn(pos(0,0,0), string("asdf\"qw\"\"zxcvg\"\r\n\"lalala\" b")), tkn(pos(1,13,33), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+% TODO: test string error cases
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
