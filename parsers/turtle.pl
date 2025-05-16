@@ -24,6 +24,9 @@ matcheq_impl([If_2-Then | Cs], E, Cases) -->
 ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
 quote_t(C, T) :- memberd_t(C, "\'\"", T).
 
+ascii_control_t(C, T) :- memberd_t(C, "\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\x09\\x0a\\x0b\\x0c\\x0d\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f\", T).
+invalid_iriref_t(C, T) :- memberd_t(C, " <\"{}|^`", T).
+
 eof_t(C, T) :- =(eof, C, T).
 comment_t(C, T) :- =('#', C, T).
 
@@ -151,6 +154,25 @@ string_quote3_(Q, C0, P0, S) -->
     =(C0)    - ( { S = [C0 | S1] }, char(C1, P1), string_quote3_(Q, C1, P1, S1) )
   ]).
 
+iriref(R) -->
+  char(C0, P0),
+  matcheq(C0, [
+    eof_t            - { throw(error(unclosediri_at(P0))) },
+    ascii_control_t  - { throw(error(invalid_irirefchar_at(C0, P0))) },
+    invalid_iriref_t - { throw(error(invalid_irirefchar_at(C0, P0))) },
+    =('>')           - { R = [] },
+    =(\)             - iriref_escape(R),
+    =(C0)            - ( { R = [C0 | R1] }, iriref(R1) )
+  ]).
+
+iriref_escape(R) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =('u')   - ( { R = [C | R1] }, escape_u(C), iriref(R1) ),
+    =('U')   - ( { R = [C | R1] }, escape_U(C), iriref(R1) ),
+    =(C0)    - { throw(error(invalid_irirefescapechar_at(C0, P0))) }
+  ]).
+
 id(C0, L0, tkn(L0, id(C0))) --> [].
 
 token(T) -->
@@ -169,8 +191,7 @@ token(T) -->
     =(')')    - { T = tkn(L0, close_par) },
     =('[')    - { T = tkn(L0, open_square) },
     =(']')    - { T = tkn(L0, close_square) },
-    =('<')    - { T = tkn(L0, open_angle) },
-    =('>')    - { T = tkn(L0, close_angle) },
+    =('<')    - ( { T = tkn(L0, iriref(R)) }, iriref(R) ),
     quote_t   - ( { T = tkn(L0, string(S)) }, string_quote(C0, S) ),
     =(C0 )    - id(C0, L0, T)
   ]).

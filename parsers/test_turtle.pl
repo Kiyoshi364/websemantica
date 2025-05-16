@@ -50,7 +50,7 @@ test_tokenizer_comment :-
 true.
 
 test_tokenizer_special_chars :-
-  In = "_,;.@()[]<>",
+  In = "_,;.@()[]",
   Out = [
     tkn(pos(0,0,0), underscore),
     tkn(pos(0,1,1), comma),
@@ -61,9 +61,7 @@ test_tokenizer_special_chars :-
     tkn(pos(0,6,6), close_par),
     tkn(pos(0,7,7), open_square),
     tkn(pos(0,8,8), close_square),
-    tkn(pos(0,9,9), open_angle),
-    tkn(pos(0,10,10), close_angle),
-    tkn(pos(0,11,11), eof)
+    tkn(pos(0,9,9), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.
@@ -153,6 +151,26 @@ test_tokenizer_string_longdouble_specific_chars :-
 true.
 
 % TODO: test string error cases
+
+test_tokenizer_iriref :-
+  In = "<asdf/qwer>",
+  Out = [tkn(pos(0,0,0), iriref("asdf/qwer")), tkn(pos(0,11,11), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_iriref_empty :-
+  In = "<>",
+  Out = [tkn(pos(0,0,0), iriref("")), tkn(pos(0,2,2), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_iriref_escape_uU :-
+  In = "<\\uabcd\\U0010cdef>",
+  Out = [tkn(pos(0,0,0), iriref("\xabcd\\x0010cdef\")), tkn(pos(0,18,18), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+% TODO: test iriref error cases
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
