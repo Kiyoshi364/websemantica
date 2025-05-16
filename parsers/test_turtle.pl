@@ -86,6 +86,24 @@ test_tokenizer_string_single_escapes_uU :-
   meta_test_tokenizer_output(In, Out),
 true.
 
+test_tokenizer_string_longsingle :-
+  In = "'''asdf qwer 1234'''",
+  Out = [tkn(pos(0,0,0), string("asdf qwer 1234")), tkn(pos(0,20,20), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longsingle_escapes :-
+  In = "'''asdf\\t\\b\\n\\r\\f\\'\\\"\\\\qwer'''",
+  Out = [tkn(pos(0,0,0), string("asdf\t\b\n\r\f\'\"\\qwer")), tkn(pos(0,30,30), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_string_longsingle_escapes_uU :-
+  In = "'''\\uabcd\\U0010cdef'''",
+  Out = [tkn(pos(0,0,0), string("\xabcd\\x0010cdef\")), tkn(pos(0,22,22), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
 % TODO: more string tests
 % TODO: test string error cases
 

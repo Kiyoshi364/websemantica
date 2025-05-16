@@ -117,16 +117,39 @@ string_single(S) -->
 
 string_single_(C0, P0, S) -->
   matcheq(C0, [
-    eof_t    - { throw(error(unclosed_singlequotechar)) },
+    eof_t    - { throw(error(unclosed_singlequotechar_at(P0))) },
+    =('\r')  - { throw(error(invalid_singlequotechar_at(C0, P0))) },
     =('\n')  - { throw(error(invalid_singlequotechar_at(C0, P0))) },
     =('\'')  - { S = [] },
     =(\)     - ( { S = [E0 | S1] }, escape(E0), char(C1, P1), string_single_(C1, P1, S1) ),
     =(C0)    - ( { S = [C0 | S1] }, char(C1, P1), string_single_(C1, P1, S1) )
   ]).
 
-string_single3(C0, P0, S) -->
-  % TODO
-[].
+string_single3_single(S) -->
+  char(C0, P0),
+  if_(C0 = '\'',
+    string_single3_single_single(S),
+    ( { S = ['\'' | S0] }, string_single3_(C0, P0, S0) )
+  ).
+
+string_single3_single_single(S) -->
+  char(C0, P0),
+  if_(C0 = '\'',
+    { S = [] },
+    ( { S = ['\'', '\'' | S0] }, string_single3_(C0, P0, S0) )
+  ).
+
+string_single3(S) -->
+  char(C0, P0),
+  string_single3_(C0, P0, S).
+
+string_single3_(C0, P0, S) -->
+  matcheq(C0, [
+    eof_t    - { throw(error(unclosed_longsinglequotechar_at(P0))) },
+    =('\'')  - string_single3_single(S),
+    =(\)     - ( { S = [E0 | S1] }, escape(E0), char(C1, P1), string_single3_(C1, P1, S1) ),
+    =(C0)    - ( { S = [C0 | S1] }, char(C1, P1), string_single3_(C1, P1, S1) )
+  ]).
 
 string(C0, L0, tkn(L0, string(C0))) -->
   % TODO
@@ -139,7 +162,7 @@ token(T) -->
   matcheq(C0, [
     ws_t      - token(T),
     eof_t     - { T = tkn(L0, eof) },
-    comment_t - ( comment(C), token(T) ),
+    comment_t - ( comment(_), token(T) ),
     under_t   - { T = tkn(L0, underscore) },
     colon_t   - { T = tkn(L0, colon) },
     comma_t   - { T = tkn(L0, comma) },
