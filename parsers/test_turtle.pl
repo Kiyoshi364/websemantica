@@ -80,7 +80,14 @@ test_tokenizer_string_single_escapes :-
   meta_test_tokenizer_output(In, Out),
 true.
 
+test_tokenizer_string_single_escapes_uU :-
+  In = "'\\uabcd\\U0010cdef'",
+  Out = [tkn(pos(0,0,0), string("\xabcd\\x0010cdef\")), tkn(pos(0,18,18), eof)],
+  meta_test_tokenizer_output(In, Out),
+true.
+
 % TODO: more string tests
+% TODO: test string error cases
 
   % meta_test_tokenizer_output(In, Out, Xa, Xb),
   % writen(Xa),
