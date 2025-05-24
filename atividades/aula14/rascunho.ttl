@@ -1,0 +1,25 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix dbp: <http://dbpedia.org/property/> .
+
+# $Movie rdf:type dbo:Film
+# $Movie rdfs:label $Movie.Title
+
+# $Movie dbo:originalTitle $Movie.Title (langString)
+# $Movie dbo:releaseDate $Movie.Released (xsd^^date)
+# $Movie dbo:filmRuntime $Movie.Runtime (*60) (xsd^^double)
+# $Movie dbo:director $Movie.Director
+# $Movie dbo:writer $Movie.Writer (for each)
+# $Movie dbo:starring $Movie.Actors (for each)
+
+# # $Movie dbp:language $Movie.Language (for each)
+# # $Movie dbp:country $Movie.Country (for each)
+
+# $Director rdf:type dbo:Person
+# $Director rdfs:label $Director
+
+# $Writer rdf:type dbo:Person
+# $Writer rdfs:label $Writer
+
+# $Actor rdf:type dbo:Person
+# $Actor rdfs:label $Actor
