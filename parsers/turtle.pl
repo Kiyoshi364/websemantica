@@ -7,7 +7,7 @@
 
 :- use_module(library(lists), [length/2, foldl/4]).
 :- use_module(library(dcgs), []).
-:- use_module(library(reif), [if_/3, (=)/3, memberd_t/3]).
+:- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3]).
 
 :- use_module(reif_dcgs, [if_//3]).
 
@@ -21,6 +21,18 @@ matcheq_impl([If_2-Then | Cs], E, Cases) -->
 
 :- use_module(library(debug)).
 
+leq_t(A, B, T) :-
+  ( var(A) -> throw(error(instantiation_error, _))
+  ; var(B) -> throw(error(instantiation_error, _))
+  ; number(A), number(B) ->
+    ( A =< B -> T = true
+    ; B < A  -> T = false
+    )
+  ).
+
+between_t(A, B, N, T) :- ','(leq_t(A, N), leq_t(N, B), T).
+
+digit_t(C, T) :- memberd_t(C, "0123456789", T).
 hex_t(C, T) :- memberd_t(C, "0123456789abcdefABCDEF", T).
 ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
 quote_t(C, T) :- memberd_t(C, "\'\"", T).
@@ -28,11 +40,55 @@ quote_t(C, T) :- memberd_t(C, "\'\"", T).
 ascii_control_t(C, T) :- memberd_t(C, "\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\x09\\x0a\\x0b\\x0c\\x0d\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f\", T).
 invalid_iriref_t(C, T) :- memberd_t(C, " <\"{}|^`", T).
 
+pn_chars_base_t(C, T) :-
+  if_(C = eof,
+    T = false,
+    ( char_code(C, X), pn_chars_base_t_(X, T) )
+  ).
+/* 6.5 [163s] */
+pn_chars_base_t_(X, T) :-
+  ;(
+    between_t(65, 90, X),       /* char_code('A', 65), char_code('Z', 90) */
+    ( between_t(97, 122, X)     /* char_code(a, 97), char_code(z, 122) */
+    ; between_t(0x00C0, 0x00D6, X)
+    ; between_t(0x00D8, 0x00F6, X)
+    ; between_t(0x00F8, 0x02FF, X)
+    ; between_t(0x0370, 0x037D, X)
+    ; between_t(0x037F, 0x1FFF, X)
+    ; between_t(0x200C, 0x200D, X)
+    ; between_t(0x2070, 0x218F, X)
+    ; between_t(0x2C00, 0x2FEF, X)
+    ; between_t(0x3001, 0xD7FF, X)
+    ; between_t(0xF900, 0xFDCF, X)
+    ; between_t(0xFDF0, 0xFFFD, X)
+    ; between_t(0x010000, 0x0EFFFF, X)
+    ),
+    T
+  ).
+/* 6.5 [164s] */
+pn_chars_u_t(C, T) :- ;(pn_chars_base_t(C), C = '_', T).
+/* 6.5 [166s] */
+pn_chars_t(C, T) :-
+  char_code(C, X),
+  ;(
+    pn_chars_base_t_(X),
+    ( memberd_t(C, "-0123456789\x00B7\")
+    ; between_t(0x0300, 0x036F, X)
+    ; between_t(0x203F, 0x2040, X)
+    ),
+    T
+  ).
+pn_local_start_t(C, T) :-
+  ;(
+    pn_chars_u_t(C),
+    memberd_t(C, ":0123456789%\\"),
+    T
+  ).
+
 eof_t(C, T) :- =(eof, C, T).
 comment_t(C, T) :- =('#', C, T).
 
 under_t(C, T) :- =('_', C, T).
-colon_t(C, T) :- =(':', C, T).
 comma_t(C, T) :- =(',', C, T).
 semi_t(C, T) :- =(';', C, T).
 dot_t(C, T) :- =('.', C, T).
@@ -86,7 +142,11 @@ escape_u_len(C, Len) -->
   foldl(hex, Ns),
   { foldl(nibble_acc_revconcat, Ns, 0, N), char_code(C, N) }.
 
+/* 6.5 [170s] */
+escape_percent(C) --> escape_u_len(C, 2).
+/* 6.5 [26 : case 0] */
 escape_u(C) --> escape_u_len(C, 4).
+/* 6.5 [26 : case 1] */
 escape_U(C) --> escape_u_len(C, 8).
 
 escape(C) -->
@@ -174,7 +234,100 @@ iriref_escape(R) -->
     =(C0)    - { throw(error(invalid_irirefescapechar_at(C0, P0))) }
   ]).
 
-id(C0, L0, tkn(L0, id(C0))) --> [].
+/* 6.5 [139s] */
+pname_ns(C0, P0, N) -->
+  matcheq(C0, [
+    =(':')          - { N = [] },
+    pn_chars_base_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
+    =(C0)           - { throw(error(invalid_namespacechar_at(C0, P0))) }
+  ]).
+
+pname_ns_after(N) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =(':')     - { N = [] },
+    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
+    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
+    =(C0)      - { throw(error(invalid_namespacechar_at(C0, P0))) }
+  ]).
+
+pname_ns_dot(N) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =(':')     - { throw(error(invalid_namespace_endswithdot_at(P0))) },
+    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
+    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
+    =(C0)      - { throw(error(invalid_namespacechar_at(C0, P0))) }
+  ]).
+
+/* 6.5 [172s] */
+pn_local_escape(C) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =('_')     - { C = '_' },
+    =(~)       - { C = (~) },
+    =('.')     - { C = '.' },
+    =(-)       - { C = (-) },
+    =(!)       - { C = (!) },
+    =($)       - { C = ($) },
+    =(&)       - { C = (&) },
+    =('\'')    - { C = '\'' },
+    =('(')     - { C = '(' },
+    =(')')     - { C = ')' },
+    =(*)       - { C = (*) },
+    =(+)       - { C = (+) },
+    =((','))   - { C = (',') },
+    =(;)       - { C = (;) },
+    =('=')     - { C = (=) },
+    =(/)       - { C = (/) },
+    =('?')     - { C = '?' },
+    =('#')     - { C = '#' },
+    =('@')     - { C = '@' },
+    =('%')     - { C = '%' },
+    =(C0)      - { throw(error(invalid_escapechar_at(C0, P0))) }
+  ]).
+
+/* 6.5 [168s] */
+pn_local_(C0, P0, L) -->
+  matcheq(C0, [
+    pn_chars_u_t   - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    digit_t        - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    =(':')         - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    =('%')         - ( { L = [C | L1] }, escape_percent(C), pn_local_after(L1) ),
+    =(\)           - ( { L = [C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
+    =(C0)          - { throw(error(invalid_localchar_at(C0, P0))) }
+  ]).
+
+pn_local_after(L) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =(eof)     - ( { L = [] }, unchar(C0, P0) ),
+    =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
+    =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    =('%')     - ( { L = [C | L1] }, espace_percent(C), pn_local_after(L1) ),
+    =(\)       - ( { L = [C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
+    =(C0)      - ( { L = [] }, unchar(C0, P0) )
+  ]).
+
+pn_local_dot(L) -->
+  char(C0, P0),
+  matcheq(C0, [
+    =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
+    =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
+    =('%')     - ( { L = [C | L1] }, espace_percent(C), pn_local_after(L1) ),
+    =(\)       - ( { L = [C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
+    =(C0)      - { throw(error(invalid_local_endswithdot_at(P0))) }
+  ]).
+
+id(C0, P0, tkn(P0, T)) -->
+  pname_ns(C0, P0, N),
+  char(C1, P1),
+  if_(pn_local_start_t(C1),
+    ( { T = prefixed(N, L) }, pn_local_(C1, P1, L) ),
+    ( { T = namespace(N) }, unchar(C1, P1) )
+  ).
 
 token(T) -->
   char(C0, L0),
@@ -183,7 +336,6 @@ token(T) -->
     eof_t     - { T = tkn(L0, eof) },
     comment_t - ( comment(_), token(T) ),
     under_t   - { T = tkn(L0, underscore) },
-    colon_t   - { T = tkn(L0, colon) },
     comma_t   - { T = tkn(L0, comma) },
     semi_t    - { T = tkn(L0, semi) },
     dot_t     - { T = tkn(L0, dot) },

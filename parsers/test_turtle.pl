@@ -26,6 +26,14 @@ meta_test_tokenizer_output(In, _, XIn, XOut) :-
   empty_pos(L0),
   repeated_phrase(token, XOut, [L0 | In], XIn).
 
+meta_test_tokenizer_output_(In, Out) :-
+  meta_test_tokenizer_output(In, Out, XIn, XOut),
+  writen(xin),
+  writen(XIn),
+  writen(xout),
+  writen(XOut),
+  false.
+
 nwdet_ok(_:T) :- nwdet(T).
 :- discontiguous(nwdet/1).
 
@@ -171,6 +179,32 @@ test_tokenizer_iriref_escape_uU :-
 true.
 
 % TODO: test iriref error cases
+
+test_tokenizer_namespace :-
+  In = "asdf: asd\xabcd\\x2040\f: :",
+  Out = [
+    tkn(pos(0,0,0), namespace("asdf")),
+    tkn(pos(0,6,6), namespace("asd\xabcd\\x2040\f")),
+    tkn(pos(0,14,16), namespace("")),
+    tkn(pos(0,15,17), eof)
+  ],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+% TODO: test namespace error cases
+
+test_tokenizer_prefixed :-
+  In = "asdf:qwer asd\xabcd\\x2040\f:%20\\+\\@.com :1234\\(\\)",
+  Out = [
+    tkn(pos(0,0,0), prefixed("asdf", "qwer")),
+    tkn(pos(0,10,10), prefixed("asd\xabcd\\x2040\f", " +@.com")),
+    tkn(pos(0,29,31), prefixed("", "1234()")),
+    tkn(pos(0,38,40), eof)
+  ],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+% TODO: test namespace error cases
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
