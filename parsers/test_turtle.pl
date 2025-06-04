@@ -62,18 +62,17 @@ test_tokenizer_comment :-
 true.
 
 test_tokenizer_special_chars :-
-  In = "_,;.@()[]",
+  In = "_,;.()[]",
   Out = [
     tkn(pos(0,0,0), underscore),
     tkn(pos(0,1,1), comma),
     tkn(pos(0,2,2), semi),
     tkn(pos(0,3,3), dot),
-    tkn(pos(0,4,4), at),
-    tkn(pos(0,5,5), open_par),
-    tkn(pos(0,6,6), close_par),
-    tkn(pos(0,7,7), open_square),
-    tkn(pos(0,8,8), close_square),
-    tkn(pos(0,9,9), eof)
+    tkn(pos(0,4,4), open_par),
+    tkn(pos(0,5,5), close_par),
+    tkn(pos(0,6,6), open_square),
+    tkn(pos(0,7,7), close_square),
+    tkn(pos(0,8,8), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.
@@ -209,6 +208,21 @@ test_tokenizer_prefixed :-
 true.
 
 % TODO: test namespace error cases
+
+test_tokenizer_langtag :-
+  In = "@pt-br@en @asd-1234f-xxx @prefix @base",
+  Out = [
+    tkn(pos(0,0,0), langtag("pt-br")),
+    tkn(pos(0,6,6), langtag("en")),
+    tkn(pos(0,10,10), langtag("asd-1234f-xxx")),
+    tkn(pos(0,25,25), langtag("prefix")),
+    tkn(pos(0,33,33), langtag("base")),
+    tkn(pos(0,38,38), eof)
+  ],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+% TODO: test langtag error cases
 
 %%%%%%%%%%%%%%%  END  Tokenizer %%%%%%%%%%%%%%%
 

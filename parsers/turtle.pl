@@ -32,6 +32,7 @@ leq_t(A, B, T) :-
 
 between_t(A, B, N, T) :- ','(leq_t(A, N), leq_t(N, B), T).
 
+alphanum_t(C, T) :- memberd_t(C, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", T).
 digit_t(C, T) :- memberd_t(C, "0123456789", T).
 hex_t(C, T) :- memberd_t(C, "0123456789abcdefABCDEF", T).
 ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
@@ -321,6 +322,21 @@ pn_local_dot(L) -->
     =(C0)      - { throw(error(invalid_local_endswithdot_at(P0))) }
   ]).
 
+langtag(L) -->
+  char(C0, P0),
+  matcheq(C0, [
+    alphanum_t - ( { L = [C0 | L1] }, langtag_after(L1) ),
+    =(C0)      - { throw(error(invalid_langtagchar_at(C0, P0))) }
+  ]).
+
+langtag_after(L) -->
+  char(C0, P0),
+  matcheq(C0, [
+    alphanum_t - ( { L = [C0 | L1] }, langtag_after(L1) ),
+    =('-')     - ( { L = [C0 | L1] }, langtag_after(L1) ),
+    =(C0)      - ( { L = [] }, unchar(C0, P0) )
+  ]).
+
 id(C0, P0, tkn(P0, T)) -->
   pname_ns(C0, P0, N),
   char(C1, P1),
@@ -339,7 +355,7 @@ token(T) -->
     comma_t   - { T = tkn(L0, comma) },
     semi_t    - { T = tkn(L0, semi) },
     dot_t     - { T = tkn(L0, dot) },
-    at_t      - { T = tkn(L0, at) },
+    at_t      - ( { T = tkn(L0, langtag(L)) }, langtag(L) ),
     =('(')    - { T = tkn(L0, open_par) },
     =(')')    - { T = tkn(L0, close_par) },
     =('[')    - { T = tkn(L0, open_square) },
