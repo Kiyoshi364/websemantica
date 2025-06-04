@@ -17,6 +17,13 @@
 
 repeated_phrase(GRM, Ls, S0, S) :- foldl(GRM, Ls, S0, S).
 
+nwdet_ok(_:T) :- nwdet(T).
+:- discontiguous(nwdet/1).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%% META  Tokenizer %%%%%%%%%%%%%%%
+
 meta_test_tokenizer_output(In, Out) :-
   meta_test_tokenizer_output(In, Out, XIn, XOut),
   XIn == [],
@@ -34,10 +41,7 @@ meta_test_tokenizer_output_(In, Out) :-
   writen(XOut),
   false.
 
-nwdet_ok(_:T) :- nwdet(T).
-:- discontiguous(nwdet/1).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% BEGIN Tokenizer %%%%%%%%%%%%%%%
 
 test_tokenizer_eof :-
   In = "",
@@ -206,7 +210,9 @@ true.
 
 % TODO: test namespace error cases
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%  END  Tokenizer %%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 run_tests :- run_tests("test_").
 
