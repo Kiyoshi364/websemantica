@@ -29,11 +29,17 @@ final_pos(P) --> [P].
 loc(L), [L] --> [L].
 
 char(C) --> char(C, _).
-char(C0, P0), [P] --> [P0, C0], !, { char_pos(C0, P0, P) }.
-char(C0, P0) --> [P0], { C0 = eof }.
+char(C0, P0, [P0 | S1], S) :-
+  if_(S1 = [C0 | S2],
+    ( S = [P | S2], char_pos(C0, P0, P) ),
+    ( S = [], C0 = eof )
+  ).
 
-unchar(eof, P, [], S) :- !, S = [P].
-unchar(C, P), [P, C] --> [P0], { char_pos(C, P, P0) }.
+unchar(C, P, S0, S) :-
+  if_(S0 = [P0 | S1],
+    ( S = [P, C | S1], char_pos(C, P, P0) ),
+    ( C = eof, S = [P] )
+  ).
 
 char_pos(X, P0, P) :-
   ( pos_ground(P0) -> char_pos_forward(X, P0, P)
