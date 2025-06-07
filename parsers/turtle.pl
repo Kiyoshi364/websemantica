@@ -108,6 +108,13 @@ comment(Comment) -->
     )
   ).
 
+carrot(A) -->
+  char(C0, L0),
+  if_(C0 = (^),
+    { A = double_carrot },
+    ( { A = carrot }, unchar(C0, L0) )
+  ).
+
 hexchar_to_num('0', 0).
 hexchar_to_num('1', 1).
 hexchar_to_num('2', 2).
@@ -363,6 +370,7 @@ token(T) -->
     =(')')    - { T = tkn(L0, close_par) },
     =('[')    - { T = tkn(L0, open_square) },
     =(']')    - { T = tkn(L0, close_square) },
+    =('^')    - ( { T = tkn(L0, A) }, carrot(A) ),
     =('<')    - ( { T = tkn(L0, iriref(R)) }, iriref(R) ),
     quote_t   - ( { T = tkn(L0, string(S)) }, string_quote(C0, S) ),
     =(C0 )    - id(C0, L0, T)

@@ -63,7 +63,7 @@ test_tokenizer_comment :-
 true.
 
 test_tokenizer_special_chars :-
-  In = "_,;.()[]",
+  In = "_,;.()[]^^ ^",
   Out = [
     tkn(pos(0,0,0), underscore),
     tkn(pos(0,1,1), comma),
@@ -73,7 +73,9 @@ test_tokenizer_special_chars :-
     tkn(pos(0,5,5), close_par),
     tkn(pos(0,6,6), open_square),
     tkn(pos(0,7,7), close_square),
-    tkn(pos(0,8,8), eof)
+    tkn(pos(0,8,8), double_carrot),
+    tkn(pos(0,11,11), carrot),
+    tkn(pos(0,12,12), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.
