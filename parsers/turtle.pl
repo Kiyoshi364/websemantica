@@ -368,8 +368,17 @@ token(T) -->
     =(C0 )    - id(C0, L0, T)
   ]).
 
+if_token(tkn(_, Inner), Match_2, Then_2, Else_2) :-
+  if_(call(Match_2, Inner), Then_2, Else_2).
+
 if_token(tkn(_, Inner), Match_2, Then_2, Else_2) -->
   if_(call(Match_2, Inner), Then_2, Else_2).
+
+matcheq_expect_token(tkn(Loc, Inner), PredName, Cases) :- matcheq_expect_token_impl(Cases, Inner, Loc, PredName, X, X).
+
+matcheq_expect_token_impl([], Inner, Loc, PredName, Expected, []) :- throw(error(expected_got_at_predicate(Expected, Inner, Loc, PredName))).
+matcheq_expect_token_impl([C-Then | Cs], Inner, Loc, PredName, Expected, [C | X]) :-
+  if_(C = Inner, Then, matcheq_expect_token_impl(Cs, Inner, Loc, PredName, Expected, X)).
 
 matcheq_expect_token(tkn(Loc, Inner), PredName, Cases) --> matcheq_expect_token_impl(Cases, Inner, Loc, PredName, X, X).
 
@@ -431,7 +440,7 @@ triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
 
 /* 6.5 [7] */
 predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
-  verb(Verb, Tkn0, S0, S1), { Ts0 = Ts1 },
+  { Ts0 = Ts1, verb(Verb, Tkn0, S0, S1) },
   token(Tkn1),
   object_list(Sub, Verb, Tkn1, Tkn2, Ts1, Ts2, S1, S2),
   matcheq_expect_token(Tkn2, predicate_list, [
@@ -450,8 +459,7 @@ object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   ).
 
 /* 6.5 [9] */
-% TODO: downgrade to prolog predicate
-verb(Pred, Tkn0, S0, S) -->
+verb(Pred, Tkn0, S0, S) :-
   if_token(Tkn0, =(id(a)),
     /* 6.5 [9 case 1] */
     { Pred = a },
@@ -462,7 +470,7 @@ verb(Pred, Tkn0, S0, S) -->
 /* 6.5 [10] */
 % TODO: do token analisis
 subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
-  ( { Ts = Ts0 }, iri(Sub, Tkn0, S0, S)
+  ( { Ts = Ts0, iri(Sub, Tkn0, S0, S) }
   ; { Ts = Ts0 }, blank_node(Sub, Tkn0, S0, S)
   ; collection(Sub, Tkn0, Ts0, Ts, S0, S)
   ).
@@ -471,7 +479,7 @@ subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
 % TODO: do token analisis
 object(Obj, Tkn0, Ts0, Ts, S0, S) -->
   /* 6.5 [12 case 0] */
-  ( { Ts = Ts0 }, iri(Obj, Tkn0, S0, S)
+  ( { Ts = Ts0, iri(Obj, Tkn0, S0, S) }
   /* 6.5 [12 case 1] */
   ; { Ts = Ts0 }, blank_node(Obj, Tkn0, S0, S)
   /* 6.5 [12 case 2] */
@@ -512,12 +520,12 @@ rdf_literal(X, Str, Tkn0, Tkn) -->
 [].
 
 /* 6.5 [135s] */
-iri(X, Tkn0, S, S) -->
+iri(X, Tkn0, S, S) :-
   matcheq_expect_token(Tkn0, iri, [
-    iriref(R)       - { append_base(S, R, X) },
+    iriref(R)       - append_base(S, R, X),
     /* 6.5 [136s] (inlined) */
-    prefixed(P, L)  - { append_namespace(S, P, L, X) },
-    namespace(N)    - { append_namespace(S, N, [], X) }
+    prefixed(P, L)  - append_namespace(S, P, L, X),
+    namespace(N)    - append_namespace(S, N, [], X)
   ]).
 
 /* 6.5 [137s] */
