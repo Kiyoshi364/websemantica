@@ -12,11 +12,11 @@
 
 :- use_module(reif_dcgs, [if_//3]).
 
-matchpred(Elem, Cases) --> matchpred_impl(Cases, Elem, Cases).
+match(Elem, Cases) --> match_impl(Cases, Elem, Cases).
 
-matchpred_impl([], E, Cases) --> { throw(error(unreachable_match(E, Cases))) }.
-matchpred_impl([If_2-Then | Cs], E, Cases) -->
-  if_(call(If_2, E), Then, matchpred_impl(Cs, E, Cases)).
+match_impl([], E, Cases) --> { throw(error(unreachable_match(E, Cases))) }.
+match_impl([If_2-Then | Cs], E, Cases) -->
+  if_(call(If_2, E), Then, match_impl(Cs, E, Cases)).
 
 :- use_module(linecol, [char//2, unchar//2]).
 
@@ -162,7 +162,7 @@ escape_U(C) --> escape_u_len(C, 8).
 
 escape(C) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =(t)     - { C = '\t' },
     =(b)     - { C = '\b' },
     =(n)     - { C = '\n' },
@@ -191,7 +191,7 @@ string_quote(Q, S) -->
   ).
 
 string_quote_(Q, C0, P0, S) -->
-  matchpred(C0, [
+  match(C0, [
     eof_t    - { throw(error(unclosedstring_withsimplequote_at(Q, P0))) },
     =('\r')  - { throw(error(invalid_simplequotechar_at(C0, P0))) },
     =('\n')  - { throw(error(invalid_simplequotechar_at(C0, P0))) },
@@ -219,7 +219,7 @@ string_quote3(Q, S) -->
   string_quote3_(Q, C0, P0, S).
 
 string_quote3_(Q, C0, P0, S) -->
-  matchpred(C0, [
+  match(C0, [
     eof_t    - { throw(error(unclosedstring_withlongquote_at(P0))) },
     =(Q)     - string_quote3_quote(Q, S),
     =(\)     - ( { S = [E0 | S1] }, escape(E0), char(C1, P1), string_quote3_(Q, C1, P1, S1) ),
@@ -228,7 +228,7 @@ string_quote3_(Q, C0, P0, S) -->
 
 iriref(R) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     eof_t            - { throw(error(unclosediri_at(P0))) },
     ascii_control_t  - { throw(error(invalid_irirefchar_at(C0, P0))) },
     invalid_iriref_t - { throw(error(invalid_irirefchar_at(C0, P0))) },
@@ -239,7 +239,7 @@ iriref(R) -->
 
 iriref_escape(R) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =('u')   - ( { R = [C | R1] }, escape_u(C), iriref(R1) ),
     =('U')   - ( { R = [C | R1] }, escape_U(C), iriref(R1) ),
     =(C0)    - { throw(error(invalid_irirefescapechar_at(C0, P0))) }
@@ -247,7 +247,7 @@ iriref_escape(R) -->
 
 /* 6.5 [139s] */
 pname_ns(C0, P0, N) -->
-  matchpred(C0, [
+  match(C0, [
     =(':')          - { N = [] },
     pn_chars_base_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
     =(C0)           - { throw(error(invalid_namespacechar_at(C0, P0))) }
@@ -255,7 +255,7 @@ pname_ns(C0, P0, N) -->
 
 pname_ns_after(N) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =(':')     - { N = [] },
     =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
     pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
@@ -264,7 +264,7 @@ pname_ns_after(N) -->
 
 pname_ns_dot(N) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =(':')     - { throw(error(invalid_namespace_endswithdot_at(P0))) },
     =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
     pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
@@ -274,7 +274,7 @@ pname_ns_dot(N) -->
 /* 6.5 [172s] */
 pn_local_escape(C) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =('_')     - { C = '_' },
     =(~)       - { C = (~) },
     =('.')     - { C = '.' },
@@ -300,7 +300,7 @@ pn_local_escape(C) -->
 
 /* 6.5 [168s] */
 pn_local_(C0, P0, L) -->
-  matchpred(C0, [
+  match(C0, [
     pn_chars_u_t   - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     digit_t        - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     =(':')         - ( { L = [C0 | L1] }, pn_local_after(L1) ),
@@ -311,7 +311,7 @@ pn_local_(C0, P0, L) -->
 
 pn_local_after(L) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =(eof)     - ( { L = [] }, unchar(C0, P0) ),
     =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
     =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
@@ -323,7 +323,7 @@ pn_local_after(L) -->
 
 pn_local_dot(L) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
     =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
@@ -334,14 +334,14 @@ pn_local_dot(L) -->
 
 langtag(L) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     alphanum_t - ( { L = [C0 | L1] }, langtag_after(L1) ),
     =(C0)      - { throw(error(invalid_langtagchar_at(C0, P0))) }
   ]).
 
 langtag_after(L) -->
   char(C0, P0),
-  matchpred(C0, [
+  match(C0, [
     alphanum_t - ( { L = [C0 | L1] }, langtag_after(L1) ),
     =('-')     - ( { L = [C0 | L1] }, langtag_after(L1) ),
     =(C0)      - ( { L = [] }, unchar(C0, P0) )
@@ -357,7 +357,7 @@ id(C0, P0, tkn(P0, T)) -->
 
 token(T) -->
   char(C0, L0),
-  matchpred(C0, [
+  match(C0, [
     ws_t      - token(T),
     eof_t     - { T = tkn(L0, eof) },
     comment_t - ( comment(_), token(T) ),
