@@ -2,10 +2,11 @@
  * Reference: www.w3.org/TR/turtle
 **/
 :- module(turtle, [
-  token//1
+  token//1,
+  empty_state/1, parse//2, parse_//4
 ]).
 
-:- use_module(library(lists), [length/2, foldl/4]).
+:- use_module(library(lists), [length/2, append/3, foldl/4]).
 :- use_module(library(dcgs), []).
 :- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3]).
 
@@ -20,6 +21,8 @@ matcheq_impl([If_2-Then | Cs], E, Cases) -->
 :- use_module(linecol, [char//2, unchar//2]).
 
 :- use_module(library(debug)).
+$(G, A, B) :- $phrase(G, A, B).
+*(_, _, _).
 
 leq_t(A, B, T) :-
   ( var(A) -> throw(error(instantiation_error, _))
@@ -376,6 +379,24 @@ matcheq_expect_token_impl([C-Then | Cs], Inner, Loc, PredName, Expected, [C | X]
 
 %%%%%%%%%%%%%%%%%%%% Parser %%%%%%%%%%%%%%%%%%%%
 
+empty_state(ps_b_b([], [], 0)).
+append_base(ps_b_b(_, B, _), R, X) :- append(B, R, X).
+append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
+  % TODO: use Ns to find P
+  Ns = Ns, N = N, P = [],
+  append(P, R, X).
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
+  G is G0 + 1.
+
+parse(Ts, S) --> { empty_state(S0) }, parse_(Ts, [], S0, S).
+
+parse_(Ts0, Ts, S0, S) -->
+  token(Tkn0),
+  if_token(Tkn0, =(eof),
+    { Ts = Ts0, S = S0 },
+    ( triples(Tkn0, Ts0, Ts1, S0, S1), parse_(Ts1, Ts, S1, S) )
+  ).
+
 /* TODO
  * 6.5 [1]
  * 6.5 [2]
@@ -410,26 +431,26 @@ triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
 
 /* 6.5 [7] */
 predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
-  verb(Verb, Tkn0, Ts0, Ts1, S0, S1),
+  verb(Verb, Tkn0, S0, S1), { Ts0 = Ts1 },
   token(Tkn1),
-  object_list(Sub, Verb, Tkn1, Ts1, Ts2, S1, S2),
-  token(Tkn2),
+  object_list(Sub, Verb, Tkn1, Tkn2, Ts1, Ts2, S1, S2),
   matcheq_expect_token(Tkn2, predicate_list, [
     semi  - ( token(Tkn3), predicate_list(Sub, Tkn3, Ts2, Ts, S2, S) ),
     dot   - { Ts = Ts2, S = S2 }
   ]).
 
 /* 6.5 [8] */
-object_list(Sub, Verb, Tkn0, Ts0, Ts, S0, S) -->
+object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   object(Obj, Tkn0, Ts0, Ts1, S0, S1),
   { Ts1 = [t(Sub, Verb, Obj) | Ts2 ] },
   token(Tkn1),
-  matcheq_expect_token(Tkn1, object_list, [
-    comma - ( token(Tkn2), object_list(Sub, Verb, Tkn2, Ts2, Ts, S1, S) ),
-    dot   - { Ts = Ts2, S = S1 }
-  ]).
+  if_token(Tkn1, =(comma),
+    ( token(Tkn2), object_list(Sub, Verb, Tkn2, Tkn, Ts2, Ts, S1, S) ),
+    { Tkn1 = Tkn, Ts = Ts2, S = S1 }
+  ).
 
 /* 6.5 [9] */
+% TODO: downgrade to prolog predicate
 verb(Pred, Tkn0, S0, S) -->
   if_token(Tkn0, =(id(a)),
     /* 6.5 [9 case 1] */
@@ -458,7 +479,7 @@ object(Obj, Tkn0, Ts0, Ts, S0, S) -->
   /* 6.5 [12 case 3] */
   ; blank_node_properties(Obj, Tkn0, Ts0, Ts, S0, S)
   /* 6.5 [12 case 4] */
-  ; { Ts = Ts0 }, literal(Obj, Tkn0, S0, S)
+  % ; { Ts = Ts0, S = S0 }, literal(Obj, Tkn0, Tkn)
   ).
 
 /* 6.5 [13] */
@@ -491,10 +512,13 @@ rdf_literal(X, Str, Tkn0, Tkn) -->
 [].
 
 /* 6.5 [135s] */
-iri(X, Tkn0, S0, S) -->
-  /* 6.5 [136s] (inlined) */
-  % TODO
-[].
+iri(X, Tkn0, S, S) -->
+  matcheq_expect_token(Tkn0, iri, [
+    iriref(R)       - { append_base(S, R, X) },
+    /* 6.5 [136s] (inlined) */
+    prefixed(P, L)  - { append_namespace(S, P, L, X) },
+    namespace(N)    - { append_namespace(S, N, [], X) }
+  ]).
 
 /* 6.5 [137s] */
 blank_node(X, Tkn0, S0, S) -->

@@ -3,7 +3,8 @@
 ]).
 
 :- use_module(turtle, [
-  token//1
+  token//1,
+  empty_state/1, parse//2
 ]).
 
 :- use_module(library(dcgs), [phrase/3]).
@@ -225,6 +226,54 @@ true.
 % TODO: test langtag error cases
 
 %%%%%%%%%%%%%%%  END  Tokenizer %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% META  Parser %%%%%%%%%%%%%%%
+
+meta_test_parser_output(In, Ts, S) :-
+  meta_test_parser_output(In, Ts, S, XIn, XTs, XS),
+  XIn == [],
+  XTs == Ts,
+  XS == S,
+  !.
+meta_test_parser_output(In, _, _, XIn, XTs, XS) :-
+  empty_pos(L0),
+  phrase(parse(XTs, XS), [L0 | In], XIn).
+
+meta_test_parser_output_(In, Ts, S) :-
+  meta_test_parser_output(In, Ts, S, XIn, XTs, XS),
+  writen(xin),
+  writen(XIn),
+  writen(xTs),
+  writen(XTs),
+  writen(xS),
+  writen(XS),
+  false.
+
+%%%%%%%%%%%%%%% BEGIN Parser %%%%%%%%%%%%%%%
+
+test_triple_simple :-
+  In = "<sub> <verb> <obj> . <sub1> <verb1> <obj1> .",
+  Ts = [
+    t("sub", "verb", "obj"),
+    t("sub1", "verb1", "obj1")
+  ],
+  S = ps_b_b([], [], 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_triple_simple_semi_comma :-
+  In = "<sub> <verb> <obj>, <obj1>; <verb1> <obj2>, <obj3>, <obj4> .",
+  Ts = [
+    t("sub", "verb", "obj"),
+    t("sub", "verb", "obj1"),
+    t("sub", "verb1", "obj2"),
+    t("sub", "verb1", "obj3"),
+    t("sub", "verb1", "obj4")
+  ],
+  S = ps_b_b([], [], 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+%%%%%%%%%%%%%%%  END  Parser %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
