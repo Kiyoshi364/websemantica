@@ -40,6 +40,9 @@ digit_t(C, T) :- memberd_t(C, "0123456789", T).
 hex_t(C, T) :- memberd_t(C, "0123456789abcdefABCDEF", T).
 ws_t(C, T) :- memberd_t(C, " \t\r\n", T).
 quote_t(C, T) :- memberd_t(C, "\'\"", T).
+number_t(C, T) :- memberd_t(C, "-+012345789", T).
+exp_t(C, T) :- memberd_t(C, "eE", T).
+sign_t(C, T) :- memberd_t(C, "-+", T).
 
 ascii_control_t(C, T) :- memberd_t(C, "\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\x09\\x0a\\x0b\\x0c\\x0d\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f\", T).
 invalid_iriref_t(C, T) :- memberd_t(C, " <\"{}|^`", T).
@@ -114,6 +117,72 @@ carrot(A) -->
     { A = double_carrot },
     ( { A = carrot }, unchar(C0, L0) )
   ).
+
+/* 6.5 [19] [20] [21] */
+number(C0, T, N) -->
+  match(C0, [
+    =(+)     - number_after_sign(T, Cs, []),
+    =(-)     - ( { Cs = [C0 | Cs1] }, number_after_sign(T, Cs1, []) ),
+    digit_t  - ( { Cs = [C0 | Cs1] }, number_after_digit(T, Cs1, []) )
+  ]),
+  % TODO: should we convert decimal to prolog's float
+  { number_chars(N, Cs) }.
+
+number_after_sign(T, Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, number_after_digit(T, Cs1, Cs) ),
+    dot_t    - ( { Cs0 = ['0', C0 | Cs1] }, noninteger_after_dot(T, Cs1, Cs) ),
+    exp_t    - ( { Cs0 = ['0', '.', '0', C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
+    =(C0)    - ( { Cs0 = ['0' | Cs], T = integer }, unchar(C0, P0) )
+  ]).
+
+number_after_digit(T, Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, number_after_digit(T, Cs1, Cs) ),
+    dot_t    - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dot(T, Cs1, Cs) ),
+    exp_t    - ( { Cs0 = ['.', '0', C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
+    =(C0)    - ( { Cs0 = Cs, T = integer }, unchar(C0, P0) )
+  ]).
+
+noninteger_after_dot(T, Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dotdigit(T, Cs1, Cs) ),
+    exp_t    - ( { Cs0 = ['0', C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
+    =(C0)    - { throw(error(invalid_decimalchar_at(C0, P0))) }
+  ]).
+
+noninteger_after_dotdigit(T, Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dotdigit(T, Cs1, Cs) ),
+    exp_t    - ( { Cs0 = ['0', C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
+    =(C0)    - ( { Cs0 = Cs, T = decimal }, unchar(C0, P0) )
+  ]).
+
+double_after_exp(Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    sign_t   - ( { Cs0 = [C0 | Cs1] }, double_after_expsign(Cs1, Cs) ),
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, double_after_expdigit(Cs1, Cs) ),
+    =(C0)    - { throw(error(invalid_doublechar_at(C0, P0))) }
+  ]).
+
+double_after_expsign(Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, double_after_expdigit(Cs1, Cs) ),
+    =(C0)    - { throw(error(invalid_doublechar_at(C0, P0))) }
+  ]).
+
+double_after_expdigit(Cs0, Cs) -->
+  char(C0, P0),
+  match(C0, [
+    digit_t  - ( { Cs0 = [C0 | Cs1] }, double_after_expdigit(Cs1, Cs) ),
+    =(C0)    - ( { Cs0 = Cs }, unchar(C0, P0) )
+  ]).
 
 hexchar_to_num('0', 0).
 hexchar_to_num('1', 1).
@@ -373,6 +442,7 @@ token(T) -->
     =('^')    - ( { T = tkn(L0, A) }, carrot(A) ),
     =('<')    - ( { T = tkn(L0, iriref(R)) }, iriref(R) ),
     quote_t   - ( { T = tkn(L0, string(S)) }, string_quote(C0, S) ),
+    number_t  - ( { T = tkn(L0, number(K, N)) }, number(C0, K, N) ),
     =(C0 )    - id(C0, L0, T)
   ]).
 
