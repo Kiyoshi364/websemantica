@@ -382,6 +382,12 @@ if_token(tkn(_, Inner), Match_2, Then_2, Else_2) :-
 if_token(tkn(_, Inner), Match_2, Then_2, Else_2) -->
   if_(call(Match_2, Inner), Then_2, Else_2).
 
+match_expect_token(tkn(Loc, Inner), PredName, Cases) --> match_expect_token_impl(Cases, Inner, Loc, PredName, X, X).
+
+match_expect_token_impl([], Inner, Loc, PredName, Expected, []) --> { throw(error(expected_got_at_predicate(Expected, Inner, Loc, PredName))) }.
+match_expect_token_impl([If_2-Then | Cs], Inner, Loc, PredName, Expected, [If_2 | X]) -->
+  if_(call(If_2, Inner), Then, match_expect_token_impl(Cs, Inner, Loc, PredName, Expected, X)).
+
 matcheq_expect_token(tkn(Loc, Inner), PredName, Cases) :- matcheq_expect_token_impl(Cases, Inner, Loc, PredName, X, X).
 
 matcheq_expect_token_impl([], Inner, Loc, PredName, Expected, []) :- throw(error(expected_got_at_predicate(Expected, Inner, Loc, PredName))).
@@ -476,38 +482,45 @@ verb(Pred, Tkn0, S0, S) :-
   ).
 
 /* 6.5 [10] */
-% TODO: do token analisis
 subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
-  ( { Ts = Ts0, iri(Sub, Tkn0, S0, S) }
-  ; { Ts = Ts0 }, blank_node(Sub, Tkn0, S0, S)
-  ; collection(Sub, Tkn0, Ts0, Ts, S0, S)
-  ).
+  match_expect_token(Tkn0, subject, [
+    /* 6.5 [10 case 0] */
+    iri_t         - { Ts = Ts0, iri(Sub, Tkn0, S0, S) },
+    /* 6.5 [10 case 1] */
+    blank_node_t  - { Ts = Ts0, blank_node(Sub, Tkn0, S0, S) },
+    /* 6.5 [10 case 2] */
+    =(open_par)   - collection(Sub, Tkn0, Ts0, Ts, S0, S)
+  ]).
 
 /* 6.5 [12] */
-% TODO: do token analisis
 object(Obj, Tkn0, Ts0, Ts, S0, S) -->
-  /* 6.5 [12 case 0] */
-  ( { Ts = Ts0, iri(Obj, Tkn0, S0, S) }
-  /* 6.5 [12 case 1] */
-  ; { Ts = Ts0 }, blank_node(Obj, Tkn0, S0, S)
-  /* 6.5 [12 case 2] */
-  ; collection(Obj, Tkn0, Ts0, Ts, S0, S)
-  /* 6.5 [12 case 3] */
-  ; blank_node_properties(Obj, Tkn0, Ts0, Ts, S0, S)
-  /* 6.5 [12 case 4] */
-  % ; { Ts = Ts0, S = S0 }, literal(Obj, Tkn0, Tkn)
-  ).
+  match_expect_token(Tkn0, object, [
+    /* 6.5 [12 case 0] */
+    iri_t           - { Ts = Ts0, iri(Obj, Tkn0, S0, S) },
+    /* 6.5 [12 case 1 and 3] */
+    =(open_square)  - blank_node_or_propertylist(Obj, Tkn0, Ts0, Ts, S0, S),
+    /* 6.5 [12 case 2] */
+    =(open_par)     - collection(Obj, Tkn0, Ts0, Ts, S0, S),
+    /* 6.5 [12 case 4] */
+    literal_t       - literal(Obj, Tkn0, Ts0, Ts, S0, S)
+  ]).
 
 /* 6.5 [13] */
+literal_t(Tkn, T) :- memberd_t(Tkn, [string(_), number(_), boolean(_)], T).
 literal(X, Tkn0, Tkn) -->
   matcheq_expect_token(Tkn0, literal, [
     /* 6.5 [13 case 0] */
-    string(Str) - ( token(Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
+    string(Str)   - ( token(Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
     /* 6.5 [16] (inlined) [13 case 1] */
-    number(N)   - ( { X = literal(number, N) }, token(Tkn) ),
+    number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token(Tkn) ),
     /* 6.5 [133s] (inlined) [13 case 2] */
-    boolean(B)  - ( { X = literal(boolean, B) }, token(Tkn) )
+    boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token(Tkn) )
   ]).
+
+tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
+tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
+tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
+tag_type(double, "http://www.w3.org/2001/XMLSchema#double").
 
 /* 6.5 [14] */
 blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
@@ -528,6 +541,7 @@ rdf_literal(X, Str, Tkn0, Tkn) -->
 [].
 
 /* 6.5 [135s] */
+iri_t(Tkn, T) :- memberd_t(Tkn, [iriref(_), prefixed(_, _), namespace(_)], T).
 iri(X, Tkn0, S, S) :-
   matcheq_expect_token(Tkn0, iri, [
     iriref(R)       - append_base(S, R, X),
@@ -537,6 +551,7 @@ iri(X, Tkn0, S, S) :-
   ]).
 
 /* 6.5 [137s] */
+blank_node_t(Tkn, T) :- memberd_t(Tkn, [], T).
 blank_node(X, Tkn0, S0, S) -->
   % TODO
 [].
