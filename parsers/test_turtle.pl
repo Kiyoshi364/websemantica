@@ -9,7 +9,7 @@
 
 :- use_module(library(dcgs), [phrase/3]).
 :- use_module(library(lists), [
-  append/3, foldl/4, maplist/2, maplist/3, length/2
+  foldl/4
 ]).
 
 :- use_module(linecol, [empty_pos/1]).
