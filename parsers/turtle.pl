@@ -119,6 +119,7 @@ carrot(A) -->
   ).
 
 /* 6.5 [19] [20] [21] */
+TODO: Represent numbers as strings
 number(C0, T, N) -->
   match(C0, [
     =(+)     - number_after_sign(T, Cs, []),
@@ -546,7 +547,7 @@ object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 verb(Pred, Tkn0, S0, S) :-
   if_token(Tkn0, =(id(a)),
     /* 6.5 [9 case 1] */
-    { Pred = a },
+    { Pred = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
     /* 6.5 [11] (inlined) [9 case 0] */
     iri(Pred, Tkn0, S0, S)
   ).
@@ -591,6 +592,8 @@ tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
 tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
 tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
 tag_type(double, "http://www.w3.org/2001/XMLSchema#double").
+tag_type(string, "http://www.w3.org/2001/XMLSchema#string").
+tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
 
 /* 6.5 [14] */
 blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
@@ -608,6 +611,7 @@ collection(X, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 rdf_literal(X, Str, Tkn0, Tkn) -->
   /* 6.5 [17] (inlined) */
   % TODO
+  % TODO: do some handling on datatypes
 [].
 
 /* 6.5 [135s] */
