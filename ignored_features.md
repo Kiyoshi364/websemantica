@@ -37,3 +37,8 @@ Reason: generaly `findall/3` + ???
 * Federation: internet in complicated, requires "prolog+rdf" -> SPARQL mapping
 * Entailment: ? // TODO
 
+# Edge inferences
+
+OWL rules (transitivity, symmetry, ...) and stuff
+
+Reason: too complicated
