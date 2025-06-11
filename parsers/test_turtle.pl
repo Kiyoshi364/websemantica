@@ -169,13 +169,13 @@ true.
 test_tokenizer_numbers :-
   In = "01234 +5 -6 7.8 9.e+10 1e-2 2e4",
   Out = [
-    tkn(pos(0,0,0), number(integer, 1234)),
-    tkn(pos(0,6,6), number(integer, 5)),
-    tkn(pos(0,9,9), number(integer, -6)),
-    tkn(pos(0,12,12), number(decimal, 7.8)),
-    tkn(pos(0,16,16), number(double, 9.0e10)),
-    tkn(pos(0,23,23), number(double, 1.0e-2)),
-    tkn(pos(0,28,28), number(double, 2.0e4)),
+    tkn(pos(0,0,0), number(integer, "01234")),
+    tkn(pos(0,6,6), number(integer, "+5")),
+    tkn(pos(0,9,9), number(integer, "-6")),
+    tkn(pos(0,12,12), number(decimal, "7.8")),
+    tkn(pos(0,16,16), number(double, "9.e+10")),
+    tkn(pos(0,23,23), number(double, "1e-2")),
+    tkn(pos(0,28,28), number(double, "2e4")),
     tkn(pos(0,31,31), eof)
   ],
   meta_test_tokenizer_output(In, Out),
