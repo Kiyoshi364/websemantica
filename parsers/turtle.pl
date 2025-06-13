@@ -421,6 +421,8 @@ id(C0, P0, tkn(P0, T)) -->
     ( { T = namespace(N) }, unchar(C1, P1) )
   ).
 
+token_(P, T) --> token__(P, T). token__(_, T) --> token(T).
+
 token(T) -->
   char(C0, L0),
   match(C0, [
@@ -481,7 +483,7 @@ gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
 parse(Ts, S) --> { empty_state(S0) }, parse_(Ts, [], S0, S).
 
 parse_(Ts0, Ts, S0, S) -->
-  token(Tkn0),
+  token_(toplevel, Tkn0),
   if_token(Tkn0, =(eof),
     { Ts = Ts0, S = S0 },
     ( triples(Tkn0, Ts0, Ts1, S0, S1), parse_(Ts1, Ts, S1, S) )
@@ -507,13 +509,13 @@ triples(Tkn0, Ts0, Ts, S0, S) -->
 /* 6.5 [6 : case 0] */
 triples_subject(Tkn0, Ts0, Ts, S0, S) -->
   subject(Sub, Tkn0, Ts0, Ts1, S0, S1),
-  token(Tkn1),
+  token_(triples_subject, Tkn1),
   predicate_list(Sub, Tkn1, Ts1, Ts, S1, S).
 
 /* 6.5 [6 : case 1] */
 triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
   blank_node_properties(Sub, Tkn0, Ts0, Ts1, S0, S1),
-  token(Tkn1),
+  token_(triples_blanknode, Tkn1),
   if_token(Tkn1, =(dot),
     { Ts = Ts1, S = S1 },
     predicate_list(Sub, Tkn1, Ts1, Ts, S1, S)
@@ -522,20 +524,20 @@ triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
 /* 6.5 [7] */
 predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
   { Ts0 = Ts1, verb(Verb, Tkn0, S0, S1) },
-  token(Tkn1),
+  token_(predicate_list, Tkn1),
   object_list(Sub, Verb, Tkn1, Tkn2, Ts1, Ts2, S1, S2),
   matcheq_expect_token(Tkn2, predicate_list, [
-    semi  - ( token(Tkn3), predicate_list(Sub, Tkn3, Ts2, Ts, S2, S) ),
+    semi  - ( token_(predicate_list_semi, Tkn3), predicate_list(Sub, Tkn3, Ts2, Ts, S2, S) ),
     dot   - { Ts = Ts2, S = S2 }
   ]).
 
 /* 6.5 [8] */
 object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   object(Obj, Tkn0, Ts0, Ts1, S0, S1),
-  { Ts1 = [t(Sub, Verb, Obj) | Ts2 ] },
+  { Ts1 = [t(Sub, Verb, Obj) | Ts2] },
   token(Tkn1),
   if_token(Tkn1, =(comma),
-    ( token(Tkn2), object_list(Sub, Verb, Tkn2, Tkn, Ts2, Ts, S1, S) ),
+    ( token_(object_list_comma, Tkn2), object_list(Sub, Verb, Tkn2, Tkn, Ts2, Ts, S1, S) ),
     { Tkn1 = Tkn, Ts = Ts2, S = S1 }
   ).
 
@@ -576,12 +578,12 @@ object(Obj, Tkn0, Ts0, Ts, S0, S) -->
 literal_t(Tkn, T) :- memberd_t(Tkn, [string(_), number(_), boolean(_)], T).
 literal(X, Tkn0, Tkn) -->
   matcheq_expect_token(Tkn0, literal, [
-    /* 6.5 [13 case 0] */
-    string(Str)   - ( token(Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
-    /* 6.5 [16] (inlined) [13 case 1] */
-    number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token(Tkn) ),
-    /* 6.5 [133s] (inlined) [13 case 2] */
-    boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token(Tkn) )
+    /* 6.5 [17] (inlined in tokenizer) [13 case 0] */
+    string(Str)   - ( token_(literal_string, Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
+    /* 6.5 [16] (inlined in tokenizer) [13 case 1] */
+    number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token_(literal_number, Tkn) ),
+    /* 6.5 [133s] (inlined in tokenizer) [13 case 2] */
+    boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token_(literal_boolean, Tkn) )
   ]).
 
 tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
@@ -595,7 +597,7 @@ tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
 blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
   { Tkn0 = open_square }, % TODO: remove this check
   { gen_blank_node(X, S0, S1) },
-  token(Tkn1),
+  token_(blank_node_properties, Tkn1),
   predicate_list(X, Tkn1, Ts0, Ts, S1, S).
 
 /* 6.5 [15] */
