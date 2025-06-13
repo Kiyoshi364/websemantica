@@ -4,13 +4,16 @@
 
 :- use_module(turtle, [
   token//1,
-  empty_state/1, parse//2
+  empty_state/1, parse//2,
+  tag_type/2
 ]).
 
 :- use_module(library(dcgs), [phrase/3]).
 :- use_module(library(lists), [
   foldl/4
 ]).
+
+:- use_module(library(debug)).
 
 :- use_module(linecol, [empty_pos/1]).
 
@@ -259,13 +262,10 @@ meta_test_parser_output(In, _, _, XIn, XTs, XS) :-
 
 meta_test_parser_output_(In, Ts, S) :-
   meta_test_parser_output(In, Ts, S, XIn, XTs, XS),
-  writen(xin),
-  writen(XIn),
-  writen(xTs),
-  writen(XTs),
-  writen(xS),
-  writen(XS),
-  false.
+  $(XIn == []),
+  $(XTs == Ts),
+  $(XS == S),
+  !.
 
 %%%%%%%%%%%%%%% BEGIN Parser %%%%%%%%%%%%%%%
 
@@ -289,6 +289,41 @@ test_triple_simple_semi_comma :-
     t("sub", "verb1", "obj4")
   ],
   S = ps_b_b([], [], 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_triple_simple_strings :-
+  In = "<sub> <verb> <obj>, 'asdf', \"qwer\", '''wiebf\nlelele\n\nqwe'''.",
+  Ts = [
+    t("sub", "verb", "obj"),
+    t("sub", "verb", literal(StringTy, "asdf")),
+    t("sub", "verb", literal(StringTy, "qwer")),
+    t("sub", "verb", literal(StringTy, "wiebf\nlelele\n\nqwe"))
+  ],
+  S = ps_b_b([], [], 0),
+  tag_type(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+% TODO: uncomment booleans
+test_triple_simple_literals :-
+  In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7 .", % ", false, true .",
+  Ts = [
+    t("sub", "verb", "obj"),
+    t("sub", "verb", literal(LangStrTy, lang_string("en", "asdf"))),
+    t("sub", "verb", literal("foo", "1234")),
+    t("sub", "verb", literal(IntegerTy, "1234")),
+    t("sub", "verb", literal(DecimalTy, "-10.2")),
+    t("sub", "verb", literal(DoubleTy, "+3.4e-7"))
+    % t("sub", "verb", literal(BooleanTy, "false")),
+    % t("sub", "verb", literal(BooleanTy, "true"))
+  ],
+  S = ps_b_b([], [], 0),
+  tag_type(lang_string, LangStrTy),
+  tag_type(integer, IntegerTy),
+  tag_type(decimal, DecimalTy),
+  tag_type(double, DoubleTy),
+  % tag_type(boolean, BooleanTy),
   meta_test_parser_output(In, Ts, S),
 true.
 

@@ -3,7 +3,8 @@
 **/
 :- module(turtle, [
   token//1,
-  empty_state/1, parse//2, parse_//4
+  empty_state/1, parse//2, parse_//4,
+  tag_type/2
 ]).
 
 :- use_module(library(lists), [length/2, append/3, foldl/4]).
@@ -523,7 +524,7 @@ triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
 
 /* 6.5 [7] */
 predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
-  { Ts0 = Ts1, verb(Verb, Tkn0, S0, S1) },
+  { Ts0 = Ts1, S0 = S1, verb(Verb, Tkn0, S0) },
   token_(predicate_list, Tkn1),
   object_list(Sub, Verb, Tkn1, Tkn2, Ts1, Ts2, S1, S2),
   matcheq_expect_token(Tkn2, predicate_list, [
@@ -533,28 +534,28 @@ predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
 
 /* 6.5 [8] */
 object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
-  object(Obj, Tkn0, Ts0, Ts1, S0, S1),
+  object(Obj, Tkn0, Tkn1, Ts0, Ts1, S0, S1),
   { Ts1 = [t(Sub, Verb, Obj) | Ts2] },
-  token(Tkn1),
   if_token(Tkn1, =(comma),
     ( token_(object_list_comma, Tkn2), object_list(Sub, Verb, Tkn2, Tkn, Ts2, Ts, S1, S) ),
     { Tkn1 = Tkn, Ts = Ts2, S = S1 }
   ).
 
 /* 6.5 [9] */
-verb(Pred, Tkn0, S0, S) :-
+verb(Pred, Tkn0, S) :-
   if_token(Tkn0, =(id(a)),
     /* 6.5 [9 case 1] */
+    % TODO: use tag_type/2
     { Pred = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
     /* 6.5 [11] (inlined) [9 case 0] */
-    iri(Pred, Tkn0, S0, S)
+    iri(Pred, Tkn0, S)
   ).
 
 /* 6.5 [10] */
 subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, subject, [
     /* 6.5 [10 case 0] */
-    iri_t         - { Ts = Ts0, iri(Sub, Tkn0, S0, S) },
+    iri_t         - { Ts = Ts0, S = S0, iri(Sub, Tkn0, S0) },
     /* 6.5 [10 case 1] */
     blank_node_t  - { Ts = Ts0, blank_node(Sub, Tkn0, S0, S) },
     /* 6.5 [10 case 2] */
@@ -562,24 +563,25 @@ subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
   ]).
 
 /* 6.5 [12] */
-object(Obj, Tkn0, Ts0, Ts, S0, S) -->
+object_follow_t(Tkn, T) :- memberd_t(Tkn, [dot, semi, comma, close_par, close_square], T).
+object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, object, [
     /* 6.5 [12 case 0] */
-    iri_t           - { Ts = Ts0, iri(Obj, Tkn0, S0, S) },
+    iri_t           - ( { Ts = Ts0, S = S0, iri(Obj, Tkn0, S0) }, token_(object_iri, Tkn) ),
     /* 6.5 [12 case 1 and 3] */
-    =(open_square)  - blank_node_or_propertylist(Obj, Tkn0, Ts0, Ts, S0, S),
+    =(open_square)  - ( blank_node_or_propertylist(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_blanknode, Tkn) ),
     /* 6.5 [12 case 2] */
-    =(open_par)     - collection(Obj, Tkn0, Ts0, Ts, S0, S),
+    =(open_par)     - ( collection(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_collection, Tkn) ),
     /* 6.5 [12 case 4] */
-    literal_t       - literal(Obj, Tkn0, Ts0, Ts, S0, S)
+    literal_t       - ( { Ts = Ts0, S = S0 }, literal(Obj, Tkn0, Tkn, S) )
   ]).
 
 /* 6.5 [13] */
-literal_t(Tkn, T) :- memberd_t(Tkn, [string(_), number(_), boolean(_)], T).
-literal(X, Tkn0, Tkn) -->
+literal_t(Tkn, T) :- memberd_t(Tkn, [string(_), number(_, _), boolean(_)], T).
+literal(X, Tkn0, Tkn, S) -->
   matcheq_expect_token(Tkn0, literal, [
     /* 6.5 [17] (inlined in tokenizer) [13 case 0] */
-    string(Str)   - ( token_(literal_string, Tkn1), rdf_literal(X, Str, Tkn1, Tkn) ),
+    string(Str)   - ( token_(literal_string, Tkn1), rdf_literal(X, Str, Tkn1, Tkn, S) ),
     /* 6.5 [16] (inlined in tokenizer) [13 case 1] */
     number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token_(literal_number, Tkn) ),
     /* 6.5 [133s] (inlined in tokenizer) [13 case 2] */
@@ -606,15 +608,19 @@ collection(X, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 [].
 
 /* 6.5 [128s] */
-rdf_literal(X, Str, Tkn0, Tkn) -->
-  /* 6.5 [17] (inlined) */
-  % TODO
-  % TODO: do some handling on datatypes
-[].
+rdf_literal(X, Str, Tkn0, Tkn, S) -->
+  match_expect_token(Tkn0, rdf_literal, [
+    /* 6.5 [128s case 0] */
+    =(langtag(L))     - ( { tag_type(lang_string, Ty), X = literal(Ty, lang_string(L, Str)) }, token_(rdf_literal_langtag, Tkn) ),
+    /* 6.5 [128s case 1] */
+    =(double_carrot)  - ( { X = literal(Ty, Str) }, token_(rdf_literal_double_carrot, Tkn1), { iri(Ty, Tkn1, S) }, token_(rdf_literal_iri, Tkn) ),
+    /* 6.5 [128s case failed_optional] */
+    object_follow_t   - { tag_type(string, Ty), X = literal(Ty, Str), Tkn0 = Tkn }
+  ]).
 
 /* 6.5 [135s] */
 iri_t(Tkn, T) :- memberd_t(Tkn, [iriref(_), prefixed(_, _), namespace(_)], T).
-iri(X, Tkn0, S, S) :-
+iri(X, Tkn0, S) :-
   matcheq_expect_token(Tkn0, iri, [
     iriref(R)       - append_base(S, R, X),
     /* 6.5 [136s] (inlined) */
