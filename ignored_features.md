@@ -23,9 +23,9 @@ Reason: too complicated
 Reason:
 
 * Select: is the default
-* Ask: use `!/0`
+* Ask: use `!/0` or `\+(\+ P)`
 * Construct: `findall/3` + `sort/2`
-* Describe: ? // TODO
+* Describe: `findall/3` + `findall(t(S, P, O), ((S=X;P=X;O=X),rdf(S, P, O)), Ts)`
 
 # Other features
 
