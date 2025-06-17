@@ -49,6 +49,39 @@ sign_t(C, T) :- memberd_t(C, "-+", T).
 ascii_control_t(C, T) :- memberd_t(C, "\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\x09\\x0a\\x0b\\x0c\\x0d\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f\", T).
 invalid_iriref_t(C, T) :- memberd_t(C, " <\"{}|^`", T).
 
+sparql_prefix_t(Cs, T) :-
+  length(Cs, L),
+  if_(L = 6,
+    ( Cs = [P, R, E, F, I, X],
+      ','(
+        memberd_t(P, "Pp"),
+        ( memberd_t(R, "Rr"),
+          memberd_t(E, "Ee"),
+          memberd_t(F, "Ff"),
+          memberd_t(I, "Ii"),
+          memberd_t(X, "Xx")
+        ),
+        T
+      )
+    ),
+    T = false
+  ).
+sparql_base_t(Cs, T) :-
+  length(Cs, L),
+  if_(L = 4,
+    ( Cs = [B, A, S, E],
+      ','(
+        memberd_t(B, "Bb"),
+        ( memberd_t(A, "Aa"),
+          memberd_t(S, "Ss"),
+          memberd_t(E, "Ee")
+        ),
+        T
+      )
+    ),
+    T = false
+  ).
+
 pn_chars_base_t(C, T) :-
   if_(C = eof,
     T = false,
@@ -430,8 +463,8 @@ id_classify(ns, N, T) -->
   ).
 id_classify(id, N, T) -->
   match(N, id_classify_id, [
-    % sparql_prefix_t   - { T = sparql_prefix },
-    % sparql_base_t     - { T = sparql_base },
+    sparql_prefix_t   - { T = sparql_prefix },
+    sparql_base_t     - { T = sparql_base },
     =("false")        - { T = boolean("false") },
     =("true")         - { T = boolean("true") },
     =("a")            - { T = a },
