@@ -11,6 +11,11 @@
 :- use_module(library(dcgs), []).
 :- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3]).
 
+:- use_module(library(debug)).
+$(G, A, B) :- $phrase(G, A, B).
+$(G, A) :- $call(G, A).
+*(_, _, _).
+
 :- use_module(reif_dcgs, [if_//3]).
 
 match(Elem, PredName, Cases) --> match_impl(Cases, Elem, PredName, Cases).
@@ -20,10 +25,6 @@ match_impl([If_2-Then | Cs], E, PredName, Cases) -->
   if_(call(If_2, E), Then, match_impl(Cs, E, PredName, Cases)).
 
 :- use_module(linecol, [char//2, unchar//2]).
-
-:- use_module(library(debug)).
-$(G, A, B) :- $phrase(G, A, B).
-*(_, _, _).
 
 leq_t(A, B, T) :-
   ( var(A) -> throw(error(instantiation_error, _))
@@ -313,28 +314,30 @@ iriref_escape(R) -->
   ]).
 
 /* 6.5 [139s] */
-pname_ns(C0, P0, N) -->
+pname_ns(C0, P0, Tag, N) -->
   match(C0, pname_ns, [
-    =(':')          - { N = [] },
-    pn_chars_base_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
+    =(':')          - { Tag = ns, N = [] },
+    pn_chars_base_t - ( { N = [C0 | N1] }, pname_ns_after(Tag, N1) ),
     =(C0)           - { throw(error(invalid_namespacechar_at(C0, P0))) }
   ]).
 
-pname_ns_after(N) -->
+pname_ns_after(Tag, N) -->
   char(C0, P0),
   match(C0, pname_ns_after, [
-    =(':')     - { N = [] },
-    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
-    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
-    =(C0)      - { throw(error(invalid_namespacechar_at(C0, P0))) }
+    eof_t      - ( { Tag = id, N = [] }, unchar(C0, P0) ),
+    =(':')     - { Tag = ns, N = [] },
+    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(Tag, N1) ),
+    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(Tag, N1) ),
+    =(C0)      - ( { Tag = id, N = [] }, unchar(C0, P0) )
   ]).
 
-pname_ns_dot(N) -->
+pname_ns_dot(Tag, N) -->
   char(C0, P0),
   match(C0, pname_ns_dot, [
+    eof_t      - ( { Tag = id, N = [] }, unchar(C0, P0) ),
     =(':')     - { throw(error(invalid_namespace_endswithdot_at(P0))) },
-    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(N1) ),
-    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(N1) ),
+    =('.')     - ( { N = [C0 | N1] }, pname_ns_dot(Tag, N1) ),
+    pn_chars_t - ( { N = [C0 | N1] }, pname_ns_after(Tag, N1) ),
     =(C0)      - { throw(error(invalid_namespacechar_at(C0, P0))) }
   ]).
 
@@ -379,7 +382,7 @@ pn_local_(C0, P0, L) -->
 pn_local_after(L) -->
   char(C0, P0),
   match(C0, pn_local_after, [
-    =(eof)     - ( { L = [] }, unchar(C0, P0) ),
+    eof_t      - ( { L = [] }, unchar(C0, P0) ),
     =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
     =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
@@ -391,6 +394,7 @@ pn_local_after(L) -->
 pn_local_dot(L) -->
   char(C0, P0),
   match(C0, pn_local_dot, [
+    eof_t      - { throw(error(invalid_local_endswithdot_at(P0))) },
     =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
     =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
@@ -415,12 +419,23 @@ langtag_after(L) -->
   ]).
 
 id(C0, P0, tkn(P0, T)) -->
-  pname_ns(C0, P0, N),
+  pname_ns(C0, P0, Tag, N),
+  id_classify(Tag, N, T).
+
+id_classify(ns, N, T) -->
   char(C1, P1),
   if_(pn_local_start_t(C1),
     ( { T = prefixed(N, L) }, pn_local_(C1, P1, L) ),
     ( { T = namespace(N) }, unchar(C1, P1) )
   ).
+id_classify(id, N, T) -->
+  match(N, id_classify_id, [
+    % sparql_prefix_t   - { T = sparql_prefix },
+    % sparql_base_t     - { T = sparql_base },
+    =("false")        - { T = boolean("false") },
+    =("true")         - { T = boolean("true") },
+    =(N)              - { T = id(N) }
+  ]).
 
 token_(P, T) --> token__(P, T). token__(_, T) --> token(T).
 
@@ -443,7 +458,7 @@ token(T) -->
     =('<')    - ( { T = tkn(L0, iriref(R)) }, iriref(R) ),
     quote_t   - ( { T = tkn(L0, string(S)) }, string_quote(C0, S) ),
     number_t  - ( { T = tkn(L0, number(K, N)) }, number(C0, K, N) ),
-    =(C0 )    - id(C0, L0, T)
+    =(C0)     - id(C0, L0, T)
   ]).
 
 if_token(tkn(_, Inner), Match_2, Then_2, Else_2) :-

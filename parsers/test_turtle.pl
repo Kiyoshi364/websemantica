@@ -40,10 +40,10 @@ meta_test_tokenizer_output(In, _, XIn, XOut) :-
 meta_test_tokenizer_output_(In, Out) :-
   meta_test_tokenizer_output(In, Out, XIn, XOut),
   writen(xin),
-  writen(XIn),
+  $(XIn == []),
   writen(xout),
-  writen(XOut),
-  false.
+  $(XOut == Out),
+  !.
 
 %%%%%%%%%%%%%%% BEGIN Tokenizer %%%%%%%%%%%%%%%
 
@@ -207,12 +207,14 @@ true.
 % TODO: test iriref error cases
 
 test_tokenizer_namespace :-
-  In = "asdf: asd\xabcd\\x2040\f: :",
+  In = "asdf: asd\xabcd\\x2040\f: : true false",
   Out = [
     tkn(pos(0,0,0), namespace("asdf")),
     tkn(pos(0,6,6), namespace("asd\xabcd\\x2040\f")),
     tkn(pos(0,14,16), namespace("")),
-    tkn(pos(0,15,17), eof)
+    tkn(pos(0,16,18), boolean("true")),
+    tkn(pos(0,21,23), boolean("false")),
+    tkn(pos(0,26,28), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.
@@ -305,25 +307,24 @@ test_triple_simple_strings :-
   meta_test_parser_output(In, Ts, S),
 true.
 
-% TODO: uncomment booleans
 test_triple_simple_literals :-
-  In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7 .", % ", false, true .",
+  In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7, false, true .",
   Ts = [
     t("sub", "verb", "obj"),
     t("sub", "verb", literal(LangStrTy, lang_string("en", "asdf"))),
     t("sub", "verb", literal("foo", "1234")),
     t("sub", "verb", literal(IntegerTy, "1234")),
     t("sub", "verb", literal(DecimalTy, "-10.2")),
-    t("sub", "verb", literal(DoubleTy, "+3.4e-7"))
-    % t("sub", "verb", literal(BooleanTy, "false")),
-    % t("sub", "verb", literal(BooleanTy, "true"))
+    t("sub", "verb", literal(DoubleTy, "+3.4e-7")),
+    t("sub", "verb", literal(BooleanTy, "false")),
+    t("sub", "verb", literal(BooleanTy, "true"))
   ],
   S = ps_b_b([], [], 0),
   tag_type(lang_string, LangStrTy),
   tag_type(integer, IntegerTy),
   tag_type(decimal, DecimalTy),
   tag_type(double, DoubleTy),
-  % tag_type(boolean, BooleanTy),
+  tag_type(boolean, BooleanTy),
   meta_test_parser_output(In, Ts, S),
 true.
 
