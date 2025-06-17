@@ -434,6 +434,7 @@ id_classify(id, N, T) -->
     % sparql_base_t     - { T = sparql_base },
     =("false")        - { T = boolean("false") },
     =("true")         - { T = boolean("true") },
+    =("a")            - { T = a },
     =(N)              - { T = id(N) }
   ]).
 
@@ -505,6 +506,14 @@ parse_(Ts0, Ts, S0, S) -->
     ( triples(Tkn0, Ts0, Ts1, S0, S1), parse_(Ts1, Ts, S1, S) )
   ).
 
+tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
+tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
+tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
+tag_type(double, "http://www.w3.org/2001/XMLSchema#double").
+tag_type(string, "http://www.w3.org/2001/XMLSchema#string").
+tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
+tag_type(a, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type").
+
 /* TODO
  * 6.5 [1]
  * 6.5 [2]
@@ -558,10 +567,9 @@ object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 
 /* 6.5 [9] */
 verb(Pred, Tkn0, S) :-
-  if_token(Tkn0, =(id(a)),
+  if_token(Tkn0, =(a),
     /* 6.5 [9 case 1] */
-    % TODO: use tag_type/2
-    { Pred = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
+    { tag_type(a, Pred) },
     /* 6.5 [11] (inlined) [9 case 0] */
     iri(Pred, Tkn0, S)
   ).
@@ -602,13 +610,6 @@ literal(X, Tkn0, Tkn, S) -->
     /* 6.5 [133s] (inlined in tokenizer) [13 case 2] */
     boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token_(literal_boolean, Tkn) )
   ]).
-
-tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
-tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
-tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
-tag_type(double, "http://www.w3.org/2001/XMLSchema#double").
-tag_type(string, "http://www.w3.org/2001/XMLSchema#string").
-tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
 
 /* 6.5 [14] */
 blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
