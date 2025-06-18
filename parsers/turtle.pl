@@ -596,7 +596,7 @@ base(S0, S) -->
 base_(S0, S) -->
   token_(base_, Tkn0),
   matcheq_expect_token(Tkn0, base_, [
-    iriref(B)   - state_base(_, B, S0, S)
+    iriref(B)   - base_state(_, B, S0, S)
   ]).
 
 /* 6.5 [6s] */
@@ -706,7 +706,7 @@ blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
   predicate_list(X, Tkn1, Ts0, Ts, S1, S).
 
 /* 6.5 [15] */
-collection(X, Tkn0, Tkn, Ts0, Ts, S0, S) -->
+collection(X, Tkn0, Ts0, Ts, S0, S) -->
   % TODO
 [].
 
