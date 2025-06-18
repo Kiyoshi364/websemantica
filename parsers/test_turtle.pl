@@ -368,7 +368,7 @@ meta_test_parser_output_(In, Ts, S) :-
 
 %%%%%%%%%%%%%%% BEGIN Parser %%%%%%%%%%%%%%%
 
-test_triple_simple :-
+test_parser_triple_simple :-
   In = "<sub> <verb> <obj> . <sub1> <verb1> <obj1> .",
   Ts = [
     t("sub", "verb", "obj"),
@@ -378,7 +378,7 @@ test_triple_simple :-
   meta_test_parser_output(In, Ts, S),
 true.
 
-test_triple_simple_semi_comma :-
+test_parser_triple_simple_semi_comma :-
   In = "<sub> <verb> <obj>, <obj1>; <verb1> <obj2>, <obj3>, <obj4> .",
   Ts = [
     t("sub", "verb", "obj"),
@@ -391,7 +391,7 @@ test_triple_simple_semi_comma :-
   meta_test_parser_output(In, Ts, S),
 true.
 
-test_triple_simple_strings :-
+test_parser_triple_simple_strings :-
   In = "<sub> <verb> <obj>, 'asdf', \"qwer\", '''wiebf\nlelele\n\nqwe'''.",
   Ts = [
     t("sub", "verb", "obj"),
@@ -404,7 +404,7 @@ test_triple_simple_strings :-
   meta_test_parser_output(In, Ts, S),
 true.
 
-test_triple_simple_literals :-
+test_parser_triple_simple_literals :-
   In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7, false, true .",
   Ts = [
     t("sub", "verb", "obj"),
@@ -422,6 +422,25 @@ test_triple_simple_literals :-
   tag_type(decimal, DecimalTy),
   tag_type(double, DoubleTy),
   tag_type(boolean, BooleanTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_parser_prefix :-
+  In = "@prefix : <http://prefix.com/> . PREFIX ex: <http://example.com/> ex:sub :verb :obj .",
+  Ts = [
+    t("http://example.com/sub", "http://prefix.com/verb", "http://prefix.com/obj")
+  ],
+  S = ps_b_b(["ex"-"http://example.com/", []-"http://prefix.com/"], [], 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_parser_prefix_override :-
+  In = "@prefix : <http://prefix.com/> . :sub :verb :obj . @prefix : <http://prefix1.com/> . :sub :verb :obj .",
+  Ts = [
+    t("http://prefix.com/sub", "http://prefix.com/verb", "http://prefix.com/obj"),
+    t("http://prefix1.com/sub", "http://prefix1.com/verb", "http://prefix1.com/obj")
+  ],
+  S = ps_b_b([[]-"http://prefix1.com/"], [], 0),
   meta_test_parser_output(In, Ts, S),
 true.
 

@@ -3,13 +3,14 @@
 **/
 :- module(turtle, [
   token//1,
-  empty_state/1, parse//2, parse_//4,
+  empty_state/1, parse//2,
+  turtledoc//4, statement//5,
   tag_type/2
 ]).
 
 :- use_module(library(lists), [length/2, append/3, foldl/4]).
 :- use_module(library(dcgs), []).
-:- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3]).
+:- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3, tpartition/4]).
 
 :- use_module(library(debug)).
 $(G, A, B) :- $phrase(G, A, B).
@@ -521,24 +522,6 @@ matcheq_expect_token_impl([C-Then | Cs], Inner, Loc, PredName, Expected, [C | X]
 
 %%%%%%%%%%%%%%%%%%%% Parser %%%%%%%%%%%%%%%%%%%%
 
-empty_state(ps_b_b([], [], 0)).
-append_base(ps_b_b(_, B, _), R, X) :- append(B, R, X).
-append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
-  % TODO: use Ns to find P
-  Ns = Ns, N = N, P = [],
-  append(P, R, X).
-gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
-  G is G0 + 1.
-
-parse(Ts, S) --> { empty_state(S0) }, parse_(Ts, [], S0, S).
-
-parse_(Ts0, Ts, S0, S) -->
-  token_(toplevel, Tkn0),
-  if_token(Tkn0, =(eof),
-    { Ts = Ts0, S = S0 },
-    ( triples(Tkn0, Ts0, Ts1, S0, S1), parse_(Ts1, Ts, S1, S) )
-  ).
-
 tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
 tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
 tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
@@ -547,17 +530,88 @@ tag_type(string, "http://www.w3.org/2001/XMLSchema#string").
 tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
 tag_type(a, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type").
 
-/* TODO
- * 6.5 [1]
- * 6.5 [2]
- * 6.5 [3]
- * 6.5 [4]
- * 6.5 [5]
- * 6.5 [5s]
- * 6.5 [6s]
-**/
+empty_state(ps_b_b([], [], 0)).
+
+namespace_state(Ns0, Ns, ps_b_b(Ns0, B, G), ps_b_b(Ns, B, G)).
+base_state(B0, B, ps_b_b(Ns, B0, G), ps_b_b(Ns, B, G)).
+gen_state(G0, G, ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G)).
+
+keyeq_t(K, K1-_, T) :- =(K, K1, T).
+cons_prefix_state(N, P, ps_b_b(Ns0, B, G), ps_b_b([N-P | Ns1], B, G)) :-
+  tpartition(keyeq_t(N), Ns0, _, Ns1).
+
+append_base(ps_b_b(_, B, _), R, X) :-
+  % TODO: smartter checking
+  append(B, R, X).
+append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
+  if_(memberd_t(N-P, Ns),
+    append(P, R, X),
+    throw(error(prefix_not_defined(N)))
+  ).
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
+  G is G0 + 1.
+
+parse(Ts, S) --> { empty_state(S0) }, turtledoc(Ts, [], S0, S).
+
+/* 6.5 [1] */
+turtledoc(Ts0, Ts, S0, S) -->
+  token_(turtledoc, Tkn0),
+  if_token(Tkn0, =(eof),
+    { Ts = Ts0, S = S0 },
+    ( statement(Tkn0, Ts0, Ts1, S0, S1), turtledoc(Ts1, Ts, S1, S) )
+  ).
+
+/* 6.5 [2] */
+statement(Tkn0, Ts0, Ts, S0, S) -->
+  match_expect_token(Tkn0, statement, [
+    /* 6.5 [3 : case 0] (inlined) [2 : case 0] */
+    =(langtag("prefix"))  - ( { Ts = Ts0 }, prefixid(S0, S) ),
+    /* 6.5 [3 : case 1] (inlined) [2 : case 0] */
+    =(langtag("base"))    - ( { Ts = Ts0 }, base(S0, S) ),
+    /* 6.5 [3 : case 2] (inlined) [2 : case 0] */
+    =(sparql_prefix)      - ( { Ts = Ts0 }, prefixid_(S0, S) ),
+    /* 6.5 [3 : case 3] (inlined) [2 : case 0] */
+    =(sparql_base)        - ( { Ts = Ts0 }, base_(S0, S) ),
+    /* 6.5 [2 : case 1] */
+    triples_t             - triples(Tkn0, Ts0, Ts, S0, S)
+  ]).
+
+/* 6.5 [4] */
+prefixid(S0, S) -->
+  prefixid_(S0, S),
+  token_(prefixid, Tkn0),
+  matcheq_expect_token(Tkn0, prefixid, [
+    dot   - []
+  ]).
+
+/* 6.5 [5] */
+base(S0, S) -->
+  base_(S0, S),
+  token_(base, Tkn0),
+  matcheq_expect_token(Tkn0, base, [
+    dot   - []
+  ]).
+
+/* 6.5 [5s] */
+base_(S0, S) -->
+  token_(base_, Tkn0),
+  matcheq_expect_token(Tkn0, base_, [
+    iriref(B)   - state_base(_, B, S0, S)
+  ]).
+
+/* 6.5 [6s] */
+prefixid_(S0, S) -->
+  token_(prefixid_namespace, Tkn0),
+  matcheq_expect_token(Tkn0, prefixid_, [
+    namespace(N)    - []
+  ]),
+  token_(prefixid_iriref, Tkn1),
+  matcheq_expect_token(Tkn1, prefixid_, [
+    iriref(P)       - { cons_prefix_state(N, P, S0, S) }
+  ]).
 
 /* 6.5 [6] */
+triples_t(Tkn, T) :- ';'(iri_t(Tkn), memberd_t(Tkn, [open_par, open_square]), T).
 triples(Tkn0, Ts0, Ts, S0, S) -->
   if_token(Tkn0, =(open_square),
     triples_blanknode(Tkn0, Ts0, Ts, S0, S),
@@ -601,20 +655,20 @@ object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 /* 6.5 [9] */
 verb(Pred, Tkn0, S) :-
   if_token(Tkn0, =(a),
-    /* 6.5 [9 case 1] */
+    /* 6.5 [9 : case 1] */
     { tag_type(a, Pred) },
-    /* 6.5 [11] (inlined) [9 case 0] */
+    /* 6.5 [11] (inlined) [9 : case 0] */
     iri(Pred, Tkn0, S)
   ).
 
 /* 6.5 [10] */
 subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, subject, [
-    /* 6.5 [10 case 0] */
+    /* 6.5 [10 : case 0] */
     iri_t         - { Ts = Ts0, S = S0, iri(Sub, Tkn0, S0) },
-    /* 6.5 [10 case 1] */
+    /* 6.5 [10 : case 1] */
     blank_node_t  - { Ts = Ts0, blank_node(Sub, Tkn0, S0, S) },
-    /* 6.5 [10 case 2] */
+    /* 6.5 [10 : case 2] */
     =(open_par)   - collection(Sub, Tkn0, Ts0, Ts, S0, S)
   ]).
 
@@ -622,13 +676,13 @@ subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
 object_follow_t(Tkn, T) :- memberd_t(Tkn, [dot, semi, comma, close_par, close_square], T).
 object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, object, [
-    /* 6.5 [12 case 0] */
+    /* 6.5 [12 : case 0] */
     iri_t           - ( { Ts = Ts0, S = S0, iri(Obj, Tkn0, S0) }, token_(object_iri, Tkn) ),
-    /* 6.5 [12 case 1 and 3] */
+    /* 6.5 [12 : case 1 and 3] */
     =(open_square)  - ( blank_node_or_propertylist(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_blanknode, Tkn) ),
-    /* 6.5 [12 case 2] */
+    /* 6.5 [12 : case 2] */
     =(open_par)     - ( collection(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_collection, Tkn) ),
-    /* 6.5 [12 case 4] */
+    /* 6.5 [12 : case 4] */
     literal_t       - ( { Ts = Ts0, S = S0 }, literal(Obj, Tkn0, Tkn, S) )
   ]).
 
@@ -636,11 +690,11 @@ object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 literal_t(Tkn, T) :- memberd_t(Tkn, [string(_), number(_, _), boolean(_)], T).
 literal(X, Tkn0, Tkn, S) -->
   matcheq_expect_token(Tkn0, literal, [
-    /* 6.5 [17] (inlined in tokenizer) [13 case 0] */
+    /* 6.5 [17] (inlined in tokenizer) [13 : case 0] */
     string(Str)   - ( token_(literal_string, Tkn1), rdf_literal(X, Str, Tkn1, Tkn, S) ),
-    /* 6.5 [16] (inlined in tokenizer) [13 case 1] */
+    /* 6.5 [16] (inlined in tokenizer) [13 : case 1] */
     number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token_(literal_number, Tkn) ),
-    /* 6.5 [133s] (inlined in tokenizer) [13 case 2] */
+    /* 6.5 [133s] (inlined in tokenizer) [13 : case 2] */
     boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token_(literal_boolean, Tkn) )
   ]).
 
@@ -659,11 +713,11 @@ collection(X, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 /* 6.5 [128s] */
 rdf_literal(X, Str, Tkn0, Tkn, S) -->
   match_expect_token(Tkn0, rdf_literal, [
-    /* 6.5 [128s case 0] */
+    /* 6.5 [128s : case 0] */
     =(langtag(L))     - ( { tag_type(lang_string, Ty), X = literal(Ty, lang_string(L, Str)) }, token_(rdf_literal_langtag, Tkn) ),
-    /* 6.5 [128s case 1] */
+    /* 6.5 [128s : case 1] */
     =(double_carrot)  - ( { X = literal(Ty, Str) }, token_(rdf_literal_double_carrot, Tkn1), { iri(Ty, Tkn1, S) }, token_(rdf_literal_iri, Tkn) ),
-    /* 6.5 [128s case failed_optional] */
+    /* 6.5 [128s : case failed_optional] */
     object_follow_t   - { tag_type(string, Ty), X = literal(Ty, Str), Tkn0 = Tkn }
   ]).
 
@@ -673,8 +727,8 @@ iri(X, Tkn0, S) :-
   matcheq_expect_token(Tkn0, iri, [
     iriref(R)       - append_base(S, R, X),
     /* 6.5 [136s] (inlined) */
-    prefixed(P, L)  - append_namespace(S, P, L, X),
-    namespace(N)    - append_namespace(S, N, [], X)
+    prefixed(P, L)  - append_prefix(S, P, L, X),
+    namespace(N)    - append_prefix(S, N, [], X)
   ]).
 
 /* 6.5 [137s] */
