@@ -418,24 +418,24 @@ pn_local_after(L) -->
   char(C0, P0),
   match(C0, pn_local_after, [
     eof_t      - ( { L = [] }, unchar(C0, P0) ),
-    =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
+    =('.')     - pn_local_dot(P0, L),
     =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
     pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
-    =('%')     - ( { L = [C | L1] }, espace_percent(C), pn_local_after(L1) ),
+    =('%')     - ( { L = [C | L1] }, escape_percent(C), pn_local_after(L1) ),
     =(\)       - ( { L = [C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
     =(C0)      - ( { L = [] }, unchar(C0, P0) )
   ]).
 
-pn_local_dot(L) -->
+pn_local_dot(P_1, L) -->
   char(C0, P0),
   match(C0, pn_local_dot, [
-    eof_t      - { throw(error(invalid_local_endswithdot_at(P0))) },
-    =('.')     - ( { L = [C0 | L1] }, pn_local_dot(L1) ),
-    =(':')     - ( { L = [C0 | L1] }, pn_local_after(L1) ),
-    pn_chars_t - ( { L = [C0 | L1] }, pn_local_after(L1) ),
-    =('%')     - ( { L = [C | L1] }, espace_percent(C), pn_local_after(L1) ),
-    =(\)       - ( { L = [C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
-    =(C0)      - { throw(error(invalid_local_endswithdot_at(P0))) }
+    eof_t      - ( { L = [] }, unchar(C0, P0), unchar('.', P_1) ),
+    =('.')     - ( { L = ['.' | L1] }, pn_local_dot(P0, L1) ),
+    =(':')     - ( { L = ['.', C0 | L1] }, pn_local_after(L1) ),
+    pn_chars_t - ( { L = ['.', C0 | L1] }, pn_local_after(L1) ),
+    =('%')     - ( { L = ['.', C | L1] }, espace_percent(C), pn_local_after(L1) ),
+    =(\)       - ( { L = ['.', C | L1] }, pn_local_escape(C), pn_local_after(L1) ),
+    =(C0)      - ( { L = [] }, unchar(C0, P0), unchar('.', P_1) )
   ]).
 
 langtag(L) -->

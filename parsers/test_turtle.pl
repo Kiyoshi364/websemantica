@@ -218,11 +218,15 @@ test_tokenizer_namespace :-
   meta_test_tokenizer_output(In, Out),
 true.
 
-test_tokenizer_localname_underscore :-
-  In = "asdf:qwer_zxcv",
+test_tokenizer_localname :-
+  In = "ex:a123 ex:qwer_zxcv ex:a%20.com ex:b.",
   Out = [
-    tkn(pos(0,0,0), prefixed("asdf", "qwer_zxcv")),
-    tkn(pos(0,14,14), eof)
+    tkn(pos(0,0,0), prefixed("ex", "a123")),
+    tkn(pos(0,8,8), prefixed("ex", "qwer_zxcv")),
+    tkn(pos(0,21,21), prefixed("ex", "a .com")),
+    tkn(pos(0,33,33), prefixed("ex", "b")),
+    tkn(pos(0,37,37), dot),
+    tkn(pos(0,38,38), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.
