@@ -110,11 +110,12 @@ pn_chars_base_t_(X, T) :-
   ).
 /* 6.5 [164s] */
 pn_chars_u_t(C, T) :- ;(pn_chars_base_t(C), C = '_', T).
+pn_chars_u_t_(X, T) :- ;(pn_chars_base_t_(X), X = 95, T). /* char_code('_', 95) */
 /* 6.5 [166s] */
 pn_chars_t(C, T) :-
   char_code(C, X),
   ;(
-    pn_chars_base_t_(X),
+    pn_chars_u_t_(X),
     ( memberd_t(C, "-0123456789\x00B7\")
     ; between_t(0x0300, 0x036F, X)
     ; between_t(0x203F, 0x2040, X)

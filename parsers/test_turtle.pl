@@ -220,6 +220,15 @@ test_tokenizer_namespace :-
   meta_test_tokenizer_output(In, Out),
 true.
 
+test_tokenizer_localname_underscore :-
+  In = "asdf:qwer_zxcv",
+  Out = [
+    tkn(pos(0,0,0), prefixed("asdf", "qwer_zxcv")),
+    tkn(pos(0,14,14), eof)
+  ],
+  meta_test_tokenizer_output(In, Out),
+true.
+
 test_tokenizer_sparql_prefix :-
   In = "prefix prefiX prefIx prefIX preFix preFiX preFIx preFIX prEfix prEfiX prEfIx prEfIX prEFix prEFiX prEFIx prEFIX pRefix pRefiX pRefIx pRefIX pReFix pReFiX pReFIx pReFIX pREfix pREfiX pREfIx pREfIX pREFix pREFiX pREFIx pREFIX Prefix PrefiX PrefIx PrefIX PreFix PreFiX PreFIx PreFIX PrEfix PrEfiX PrEfIx PrEfIX PrEFix PrEFiX PrEFIx PrEFIX PRefix PRefiX PRefIx PRefIX PReFix PReFiX PReFIx PReFIX PREfix PREfiX PREfIx PREfIX PREFix PREFiX PREFIx PREFIX",
   Out = [
