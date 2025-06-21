@@ -3,7 +3,7 @@
 ]).
 
 :- use_module(turtle, [
-  token//1,
+  empty_pos/1, token//1,
   empty_state/1, parse//2,
   tag_type/2
 ]).
@@ -14,8 +14,6 @@
 ]).
 
 :- use_module(library(debug)).
-
-:- use_module(linecol, [empty_pos/1]).
 
 :- use_module(libtest).
 
@@ -365,8 +363,7 @@ meta_test_parser_output(In, Ts, S) :-
   XS == S,
   !.
 meta_test_parser_output(In, _, _, XIn, XTs, XS) :-
-  empty_pos(L0),
-  phrase(parse(XTs, XS), [L0 | In], XIn).
+  phrase(parse(XTs, XS), In, XIn).
 
 meta_test_parser_output_(In, Ts, S) :-
   meta_test_parser_output(In, Ts, S, XIn, XTs, XS),

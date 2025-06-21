@@ -2,7 +2,7 @@
  * Reference: www.w3.org/TR/turtle
 **/
 :- module(turtle, [
-  token//1,
+  empty_pos/1, initial_pos//0, token//1,
   empty_state/1, parse//2,
   turtledoc//4, statement//5,
   tag_type/2
@@ -25,7 +25,7 @@ match_impl([], E, PredName, Cases) --> { throw(error(unreachable_match_predname(
 match_impl([If_2-Then | Cs], E, PredName, Cases) -->
   if_(call(If_2, E), Then, match_impl(Cs, E, PredName, Cases)).
 
-:- use_module(linecol, [char//2, unchar//2]).
+:- use_module(linecol, [empty_pos/1, initial_pos//0, char//2, unchar//2]).
 
 leq_t(A, B, T) :-
   ( var(A) -> throw(error(instantiation_error, _))
@@ -552,7 +552,7 @@ append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
 gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
   G is G0 + 1.
 
-parse(Ts, S) --> { empty_state(S0) }, turtledoc(Ts, [], S0, S).
+parse(Ts, S) --> { empty_state(S0) }, initial_pos, turtledoc(Ts, [], S0, S).
 
 /* 6.5 [1] */
 turtledoc(Ts0, Ts, S0, S) -->
