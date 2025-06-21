@@ -596,7 +596,7 @@ base(S0, S) -->
 base_(S0, S) -->
   token_(base_, Tkn0),
   matcheq_expect_token(Tkn0, base_, [
-    iriref(B)   - base_state(_, B, S0, S)
+    iriref(B)   - { base_state(_, B, S0, S) }
   ]).
 
 /* 6.5 [6s] */

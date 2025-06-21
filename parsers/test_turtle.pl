@@ -444,6 +444,25 @@ test_parser_prefix_override :-
   meta_test_parser_output(In, Ts, S),
 true.
 
+test_parser_base :-
+  In = "@base <http://base.com/> . <sub> <verb> <obj> .",
+  Ts = [
+    t("http://base.com/sub", "http://base.com/verb", "http://base.com/obj")
+  ],
+  S = ps_b_b([], "http://base.com/", 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_parser_base_override :-
+  In = "@base <http://base.com/> . <sub> <verb> <obj> . BASE <http://base1.com/> <sub> <verb> <obj> .",
+  Ts = [
+    t("http://base.com/sub", "http://base.com/verb", "http://base.com/obj"),
+    t("http://base1.com/sub", "http://base1.com/verb", "http://base1.com/obj")
+  ],
+  S = ps_b_b([], "http://base1.com/", 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
 %%%%%%%%%%%%%%%  END  Parser %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
