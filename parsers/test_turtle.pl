@@ -381,8 +381,8 @@ meta_test_parser_output_(In, Ts, S) :-
 test_parser_triple_simple :-
   In = "<sub> <verb> <obj> . <sub1> <verb1> <obj1> .",
   Ts = [
-    t("sub", "verb", "obj"),
-    t("sub1", "verb1", "obj1")
+    t(iri(sub), iri(verb), iri(obj)),
+    t(iri(sub1), iri(verb1), iri(obj1))
   ],
   S = ps_b_b([], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -391,11 +391,11 @@ true.
 test_parser_triple_simple_semi_comma :-
   In = "<sub> <verb> <obj>, <obj1>; <verb1> <obj2>, <obj3>, <obj4> .",
   Ts = [
-    t("sub", "verb", "obj"),
-    t("sub", "verb", "obj1"),
-    t("sub", "verb1", "obj2"),
-    t("sub", "verb1", "obj3"),
-    t("sub", "verb1", "obj4")
+    t(iri(sub), iri(verb), iri(obj)),
+    t(iri(sub), iri(verb), iri(obj1)),
+    t(iri(sub), iri(verb1), iri(obj2)),
+    t(iri(sub), iri(verb1), iri(obj3)),
+    t(iri(sub), iri(verb1), iri(obj4))
   ],
   S = ps_b_b([], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -404,10 +404,10 @@ true.
 test_parser_triple_simple_strings :-
   In = "<sub> <verb> <obj>, 'asdf', \"qwer\", '''wiebf\nlelele\n\nqwe'''.",
   Ts = [
-    t("sub", "verb", "obj"),
-    t("sub", "verb", literal(StringTy, "asdf")),
-    t("sub", "verb", literal(StringTy, "qwer")),
-    t("sub", "verb", literal(StringTy, "wiebf\nlelele\n\nqwe"))
+    t(iri(sub), iri(verb), iri(obj)),
+    t(iri(sub), iri(verb), literal(StringTy, "asdf")),
+    t(iri(sub), iri(verb), literal(StringTy, "qwer")),
+    t(iri(sub), iri(verb), literal(StringTy, "wiebf\nlelele\n\nqwe"))
   ],
   S = ps_b_b([], [], 0),
   tag_type(string, StringTy),
@@ -417,14 +417,14 @@ true.
 test_parser_triple_simple_literals :-
   In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7, false, true .",
   Ts = [
-    t("sub", "verb", "obj"),
-    t("sub", "verb", literal(LangStrTy, lang_string("en", "asdf"))),
-    t("sub", "verb", literal("foo", "1234")),
-    t("sub", "verb", literal(IntegerTy, "1234")),
-    t("sub", "verb", literal(DecimalTy, "-10.2")),
-    t("sub", "verb", literal(DoubleTy, "+3.4e-7")),
-    t("sub", "verb", literal(BooleanTy, "false")),
-    t("sub", "verb", literal(BooleanTy, "true"))
+    t(iri(sub), iri(verb), iri(obj)),
+    t(iri(sub), iri(verb), literal(LangStrTy, @("asdf", "en"))),
+    t(iri(sub), iri(verb), literal(iri(foo), "1234")),
+    t(iri(sub), iri(verb), literal(IntegerTy, "1234")),
+    t(iri(sub), iri(verb), literal(DecimalTy, "-10.2")),
+    t(iri(sub), iri(verb), literal(DoubleTy, "+3.4e-7")),
+    t(iri(sub), iri(verb), literal(BooleanTy, "false")),
+    t(iri(sub), iri(verb), literal(BooleanTy, "true"))
   ],
   S = ps_b_b([], [], 0),
   tag_type(lang_string, LangStrTy),
@@ -438,7 +438,7 @@ true.
 test_parser_prefix :-
   In = "@prefix : <http://prefix.com/> . PREFIX ex: <http://example.com/> ex:sub :verb :obj .",
   Ts = [
-    t("http://example.com/sub", "http://prefix.com/verb", "http://prefix.com/obj")
+    t(iri('http://example.com/sub'), iri('http://prefix.com/verb'), iri('http://prefix.com/obj'))
   ],
   S = ps_b_b(["ex"-"http://example.com/", []-"http://prefix.com/"], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -447,8 +447,8 @@ true.
 test_parser_prefix_override :-
   In = "@prefix : <http://prefix.com/> . :sub :verb :obj . @prefix : <http://prefix1.com/> . :sub :verb :obj .",
   Ts = [
-    t("http://prefix.com/sub", "http://prefix.com/verb", "http://prefix.com/obj"),
-    t("http://prefix1.com/sub", "http://prefix1.com/verb", "http://prefix1.com/obj")
+    t(iri('http://prefix.com/sub'), iri('http://prefix.com/verb'), iri('http://prefix.com/obj')),
+    t(iri('http://prefix1.com/sub'), iri('http://prefix1.com/verb'), iri('http://prefix1.com/obj'))
   ],
   S = ps_b_b([[]-"http://prefix1.com/"], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -457,7 +457,7 @@ true.
 test_parser_base :-
   In = "@base <http://base.com/> . <sub> <verb> <obj> .",
   Ts = [
-    t("http://base.com/sub", "http://base.com/verb", "http://base.com/obj")
+    t(iri('http://base.com/sub'), iri('http://base.com/verb'), iri('http://base.com/obj'))
   ],
   S = ps_b_b([], "http://base.com/", 0),
   meta_test_parser_output(In, Ts, S),
@@ -466,8 +466,8 @@ true.
 test_parser_base_override :-
   In = "@base <http://base.com/> . <sub> <verb> <obj> . BASE <http://base1.com/> <sub> <verb> <obj> .",
   Ts = [
-    t("http://base.com/sub", "http://base.com/verb", "http://base.com/obj"),
-    t("http://base1.com/sub", "http://base1.com/verb", "http://base1.com/obj")
+    t(iri('http://base.com/sub'), iri('http://base.com/verb'), iri('http://base.com/obj')),
+    t(iri('http://base1.com/sub'), iri('http://base1.com/verb'), iri('http://base1.com/obj'))
   ],
   S = ps_b_b([], "http://base1.com/", 0),
   meta_test_parser_output(In, Ts, S),

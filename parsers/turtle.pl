@@ -523,13 +523,13 @@ matcheq_expect_token_impl([C-Then | Cs], Inner, Loc, PredName, Expected, [C | X]
 
 %%%%%%%%%%%%%%%%%%%% Parser %%%%%%%%%%%%%%%%%%%%
 
-tag_type(boolean, "http://www.w3.org/2001/XMLSchema#boolean").
-tag_type(integer, "http://www.w3.org/2001/XMLSchema#integer").
-tag_type(decimal, "http://www.w3.org/2001/XMLSchema#decimal").
-tag_type(double, "http://www.w3.org/2001/XMLSchema#double").
-tag_type(string, "http://www.w3.org/2001/XMLSchema#string").
-tag_type(lang_string, "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString").
-tag_type(a, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type").
+tag_type(boolean, 'http://www.w3.org/2001/XMLSchema#boolean').
+tag_type(integer, 'http://www.w3.org/2001/XMLSchema#integer').
+tag_type(decimal, 'http://www.w3.org/2001/XMLSchema#decimal').
+tag_type(double, 'http://www.w3.org/2001/XMLSchema#double').
+tag_type(string, 'http://www.w3.org/2001/XMLSchema#string').
+tag_type(lang_string, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString').
+tag_type(a, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type').
 
 empty_state(ps_b_b([], [], 0)).
 
@@ -541,15 +541,18 @@ keyeq_t(K, K1-_, T) :- =(K, K1, T).
 cons_prefix_state(N, P, ps_b_b(Ns0, B, G), ps_b_b([N-P | Ns1], B, G)) :-
   tpartition(keyeq_t(N), Ns0, _, Ns1).
 
+iri_chars(iri(Iri), Str) :- atom_chars(Iri, Str).
+
 append_base(ps_b_b(_, B, _), R, X) :-
   % TODO: smartter checking
-  append(B, R, X).
+  append(B, R, Xs),
+  iri_chars(X, Xs).
 append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
   if_(memberd_t(N-P, Ns),
-    append(P, R, X),
+    ( append(P, R, Xs), iri_chars(X, Xs) ),
     throw(error(prefix_not_defined(N)))
   ).
-gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), n(G0)) :-
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), blanknode(G0)) :-
   G is G0 + 1.
 
 parse(Ts, S) --> { empty_state(S0) }, initial_pos, turtledoc(Ts, [], S0, S).
@@ -715,7 +718,7 @@ collection(X, Tkn0, Ts0, Ts, S0, S) -->
 rdf_literal(X, Str, Tkn0, Tkn, S) -->
   match_expect_token(Tkn0, rdf_literal, [
     /* 6.5 [128s : case 0] */
-    =(langtag(L))     - ( { tag_type(lang_string, Ty), X = literal(Ty, lang_string(L, Str)) }, token_(rdf_literal_langtag, Tkn) ),
+    =(langtag(L))     - ( { tag_type(lang_string, Ty), X = literal(Ty, @(Str, L)) }, token_(rdf_literal_langtag, Tkn) ),
     /* 6.5 [128s : case 1] */
     =(double_carrot)  - ( { X = literal(Ty, Str) }, token_(rdf_literal_double_carrot, Tkn1), { iri(Ty, Tkn1, S) }, token_(rdf_literal_iri, Tkn) ),
     /* 6.5 [128s : case failed_optional] */
