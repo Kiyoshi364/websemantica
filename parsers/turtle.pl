@@ -166,7 +166,7 @@ number_after_sign(T, Cs0, Cs) -->
   char(C0, P0),
   match(C0, number_after_sign, [
     digit_t  - ( { Cs0 = [C0 | Cs1] }, number_after_digit(T, Cs1, Cs) ),
-    dot_t    - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dot(T, Cs1, Cs) ),
+    dot_t    - ( noninteger_after_dot(T, P0, Cs0, Cs) ),
     exp_t    - ( { Cs0 = [C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
     =(C0)    - ( { Cs0 = Cs, T = integer }, unchar(C0, P0) )
   ]).
@@ -175,17 +175,17 @@ number_after_digit(T, Cs0, Cs) -->
   char(C0, P0),
   match(C0, number_after_digit, [
     digit_t  - ( { Cs0 = [C0 | Cs1] }, number_after_digit(T, Cs1, Cs) ),
-    dot_t    - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dot(T, Cs1, Cs) ),
+    dot_t    - ( noninteger_after_dot(T, P0, Cs0, Cs) ),
     exp_t    - ( { Cs0 = [C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
     =(C0)    - ( { Cs0 = Cs, T = integer }, unchar(C0, P0) )
   ]).
 
-noninteger_after_dot(T, Cs0, Cs) -->
+noninteger_after_dot(T, P_1, Cs0, Cs) -->
   char(C0, P0),
   match(C0, noninteger_after_dot, [
-    digit_t  - ( { Cs0 = [C0 | Cs1] }, noninteger_after_dotdigit(T, Cs1, Cs) ),
-    exp_t    - ( { Cs0 = [C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
-    =(C0)    - { throw(error(invalid_decimalchar_at(C0, P0))) }
+    digit_t  - ( { Cs0 = ['.', C0 | Cs1] }, noninteger_after_dotdigit(T, Cs1, Cs) ),
+    exp_t    - ( { Cs0 = ['.', C0 | Cs1], T = double }, double_after_exp(Cs1, Cs) ),
+    =(C0)    - ( { Cs0 = Cs, T = integer }, unchar(C0, P0), unchar('.', P_1) )
   ]).
 
 noninteger_after_dotdigit(T, Cs0, Cs) -->
