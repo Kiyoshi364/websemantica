@@ -1,0 +1,24 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix : <http://example.com/base/> .
+@prefix dbr: <http://dbpedia.org/resource/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+
+:John rdf:type foaf:Person .
+:John foaf:name "John"@en .
+:John :age 32 .
+:John foaf:phone "+123456" .
+:John :gender :male .
+:Tim rdf:type foaf:Person .
+:Tim foaf:name "Tim"^^xsd:string .
+:Tim :age 20.
+:Tim :gender :male.
+:Tim dbo:birthPlace dbr:Hawaii.
+:Jane rdf:type foaf:Person .
+:Jane rdfs:label "Jane" .
+:Jane :age 23.
+:Jane :gender :female.
+:John foaf:knows :Tim .
+:Tim foaf:knows :John .
