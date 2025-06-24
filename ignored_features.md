@@ -12,7 +12,7 @@ Reason: can be implemented in Prolog
 * Union: `findall/3` + `append/3`
 * Exists: ? // TODO
 * Minus: ? // TODO
-* Optional: use `';'/2` (ex: `( ... ; true )`)
+* Optional: `optional(T) :- copy_term(T, T0, Gs0), maplist(call, Gs0), (call(T0) -> call(T) ; true)`
 
 # SPARQL Datasets
 
