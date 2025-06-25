@@ -5,7 +5,7 @@
 :- use_module(turtle, [
   empty_pos/1, token//1,
   empty_state/1, parse//2,
-  tag_type/2
+  tag_iri/2
 ]).
 
 :- use_module(library(dcgs), [phrase/3]).
@@ -381,8 +381,8 @@ meta_test_parser_output_(In, Ts, S) :-
 test_parser_triple_simple :-
   In = "<sub> <verb> <obj> . <sub1> <verb1> <obj1> .",
   Ts = [
-    t(iri(sub), iri(verb), iri(obj)),
-    t(iri(sub1), iri(verb1), iri(obj1))
+    t(resource(iri, sub), resource(iri, verb), resource(iri, obj)),
+    t(resource(iri, sub1), resource(iri, verb1), resource(iri, obj1))
   ],
   S = ps_b_b([], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -391,11 +391,11 @@ true.
 test_parser_triple_simple_semi_comma :-
   In = "<sub> <verb> <obj>, <obj1>; <verb1> <obj2>, <obj3>, <obj4> .",
   Ts = [
-    t(iri(sub), iri(verb), iri(obj)),
-    t(iri(sub), iri(verb), iri(obj1)),
-    t(iri(sub), iri(verb1), iri(obj2)),
-    t(iri(sub), iri(verb1), iri(obj3)),
-    t(iri(sub), iri(verb1), iri(obj4))
+    t(resource(iri, sub), resource(iri, verb), resource(iri, obj)),
+    t(resource(iri, sub), resource(iri, verb), resource(iri, obj1)),
+    t(resource(iri, sub), resource(iri, verb1), resource(iri, obj2)),
+    t(resource(iri, sub), resource(iri, verb1), resource(iri, obj3)),
+    t(resource(iri, sub), resource(iri, verb1), resource(iri, obj4))
   ],
   S = ps_b_b([], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -404,41 +404,41 @@ true.
 test_parser_triple_simple_strings :-
   In = "<sub> <verb> <obj>, 'asdf', \"qwer\", '''wiebf\nlelele\n\nqwe'''.",
   Ts = [
-    t(iri(sub), iri(verb), iri(obj)),
-    t(iri(sub), iri(verb), literal(StringTy, "asdf")),
-    t(iri(sub), iri(verb), literal(StringTy, "qwer")),
-    t(iri(sub), iri(verb), literal(StringTy, "wiebf\nlelele\n\nqwe"))
+    t(resource(iri, sub), resource(iri, verb), resource(iri, obj)),
+    t(resource(iri, sub), resource(iri, verb), literal(StringTy, "asdf")),
+    t(resource(iri, sub), resource(iri, verb), literal(StringTy, "qwer")),
+    t(resource(iri, sub), resource(iri, verb), literal(StringTy, "wiebf\nlelele\n\nqwe"))
   ],
   S = ps_b_b([], [], 0),
-  tag_type(string, StringTy),
+  tag_iri(string, StringTy),
   meta_test_parser_output(In, Ts, S),
 true.
 
 test_parser_triple_simple_literals :-
   In = "<sub> <verb> <obj>, 'asdf'@en, '1234'^^<foo>, 1234, -10.2, +3.4e-7, false, true .",
   Ts = [
-    t(iri(sub), iri(verb), iri(obj)),
-    t(iri(sub), iri(verb), literal(LangStrTy, @("asdf", "en"))),
-    t(iri(sub), iri(verb), literal(iri(foo), "1234")),
-    t(iri(sub), iri(verb), literal(IntegerTy, "1234")),
-    t(iri(sub), iri(verb), literal(DecimalTy, "-10.2")),
-    t(iri(sub), iri(verb), literal(DoubleTy, "+3.4e-7")),
-    t(iri(sub), iri(verb), literal(BooleanTy, "false")),
-    t(iri(sub), iri(verb), literal(BooleanTy, "true"))
+    t(resource(iri, sub), resource(iri, verb), resource(iri, obj)),
+    t(resource(iri, sub), resource(iri, verb), literal(LangStrTy, @("asdf", "en"))),
+    t(resource(iri, sub), resource(iri, verb), literal(resource(iri, foo), "1234")),
+    t(resource(iri, sub), resource(iri, verb), literal(IntegerTy, "1234")),
+    t(resource(iri, sub), resource(iri, verb), literal(DecimalTy, "-10.2")),
+    t(resource(iri, sub), resource(iri, verb), literal(DoubleTy, "+3.4e-7")),
+    t(resource(iri, sub), resource(iri, verb), literal(BooleanTy, "false")),
+    t(resource(iri, sub), resource(iri, verb), literal(BooleanTy, "true"))
   ],
   S = ps_b_b([], [], 0),
-  tag_type(lang_string, LangStrTy),
-  tag_type(integer, IntegerTy),
-  tag_type(decimal, DecimalTy),
-  tag_type(double, DoubleTy),
-  tag_type(boolean, BooleanTy),
+  tag_iri(lang_string, LangStrTy),
+  tag_iri(integer, IntegerTy),
+  tag_iri(decimal, DecimalTy),
+  tag_iri(double, DoubleTy),
+  tag_iri(boolean, BooleanTy),
   meta_test_parser_output(In, Ts, S),
 true.
 
 test_parser_prefix :-
   In = "@prefix : <http://prefix.com/> . PREFIX ex: <http://example.com/> ex:sub :verb :obj .",
   Ts = [
-    t(iri('http://example.com/sub'), iri('http://prefix.com/verb'), iri('http://prefix.com/obj'))
+    t(resource(iri, 'http://example.com/sub'), resource(iri, 'http://prefix.com/verb'), resource(iri, 'http://prefix.com/obj'))
   ],
   S = ps_b_b(["ex"-"http://example.com/", []-"http://prefix.com/"], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -447,8 +447,8 @@ true.
 test_parser_prefix_override :-
   In = "@prefix : <http://prefix.com/> . :sub :verb :obj . @prefix : <http://prefix1.com/> . :sub :verb :obj .",
   Ts = [
-    t(iri('http://prefix.com/sub'), iri('http://prefix.com/verb'), iri('http://prefix.com/obj')),
-    t(iri('http://prefix1.com/sub'), iri('http://prefix1.com/verb'), iri('http://prefix1.com/obj'))
+    t(resource(iri, 'http://prefix.com/sub'), resource(iri, 'http://prefix.com/verb'), resource(iri, 'http://prefix.com/obj')),
+    t(resource(iri, 'http://prefix1.com/sub'), resource(iri, 'http://prefix1.com/verb'), resource(iri, 'http://prefix1.com/obj'))
   ],
   S = ps_b_b([[]-"http://prefix1.com/"], [], 0),
   meta_test_parser_output(In, Ts, S),
@@ -457,7 +457,7 @@ true.
 test_parser_base :-
   In = "@base <http://base.com/> . <sub> <verb> <obj> .",
   Ts = [
-    t(iri('http://base.com/sub'), iri('http://base.com/verb'), iri('http://base.com/obj'))
+    t(resource(iri, 'http://base.com/sub'), resource(iri, 'http://base.com/verb'), resource(iri, 'http://base.com/obj'))
   ],
   S = ps_b_b([], "http://base.com/", 0),
   meta_test_parser_output(In, Ts, S),
@@ -466,8 +466,8 @@ true.
 test_parser_base_override :-
   In = "@base <http://base.com/> . <sub> <verb> <obj> . BASE <http://base1.com/> <sub> <verb> <obj> .",
   Ts = [
-    t(iri('http://base.com/sub'), iri('http://base.com/verb'), iri('http://base.com/obj')),
-    t(iri('http://base1.com/sub'), iri('http://base1.com/verb'), iri('http://base1.com/obj'))
+    t(resource(iri, 'http://base.com/sub'), resource(iri, 'http://base.com/verb'), resource(iri, 'http://base.com/obj')),
+    t(resource(iri, 'http://base1.com/sub'), resource(iri, 'http://base1.com/verb'), resource(iri, 'http://base1.com/obj'))
   ],
   S = ps_b_b([], "http://base1.com/", 0),
   meta_test_parser_output(In, Ts, S),
@@ -476,12 +476,12 @@ true.
 test_parser_base_blanknode :-
   In = "[ <verb1> <obj1> ]. [ <verb2> <obj2> ] <verb3> <obj3> ." ,% TODO: ; <verb4> [ <verb5> <obj5> ], [ ] .",
   Ts = [
-    t(iri(blank(0)), iri('verb1'), iri('obj1')),
-    t(iri(blank(1)), iri('verb2'), iri('obj2')),
-    t(iri(blank(1)), iri('verb3'), iri('obj3'))
-    % t(iri(blank(2)), iri('verb5'), iri('obj5')),
-    % t(iri(blank(1)), iri('verb4'), iri(blank(2))),
-    % t(iri(blank(1)), iri('verb4'), iri(blank(3)))
+    t(resource(blank(unlabeled), 0), resource(iri, 'verb1'), resource(iri, 'obj1')),
+    t(resource(blank(unlabeled), 1), resource(iri, 'verb2'), resource(iri, 'obj2')),
+    t(resource(blank(unlabeled), 1), resource(iri, 'verb3'), resource(iri, 'obj3'))
+    % t(resource(blank(unlabeled), 2), resource(iri, 'verb5'), resource(iri, 'obj5')),
+    % t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 2)),
+    % t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 3))
   ],
   % S = ps_b_b([], "", 4),
   S = ps_b_b([], "", 2),

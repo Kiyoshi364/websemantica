@@ -5,7 +5,7 @@
   empty_pos/1, initial_pos//0, token//1,
   empty_state/1, parse//2,
   turtledoc//4, statement//5,
-  tag_type/2
+  tag_type/2, tag_iri/2
 ]).
 
 :- use_module(library(lists), [length/2, append/3, foldl/4]).
@@ -531,6 +531,8 @@ tag_type(string, 'http://www.w3.org/2001/XMLSchema#string').
 tag_type(lang_string, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString').
 tag_type(a, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type').
 
+tag_iri(Tag, Iri) :- tag_type(Tag, Ty), iri_atom(Iri, Ty).
+
 empty_state(ps_b_b([], [], 0)).
 
 namespace_state(Ns0, Ns, ps_b_b(Ns0, B, G), ps_b_b(Ns, B, G)).
@@ -541,7 +543,8 @@ keyeq_t(K, K1-_, T) :- =(K, K1, T).
 cons_prefix_state(N, P, ps_b_b(Ns0, B, G), ps_b_b([N-P | Ns1], B, G)) :-
   tpartition(keyeq_t(N), Ns0, _, Ns1).
 
-iri_chars(iri(Iri), Str) :- atom_chars(Iri, Str).
+iri_atom(resource(iri, A), A).
+iri_chars(Iri, Str) :- atom_chars(A, Str), iri_atom(Iri, A).
 
 append_base(ps_b_b(_, B, _), R, X) :-
   % TODO: smartter checking
@@ -552,7 +555,7 @@ append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
     ( append(P, R, Xs), iri_chars(X, Xs) ),
     throw(error(prefix_not_defined(N)))
   ).
-gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), iri(blank(G0))) :-
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), resource(blank(unlabeled), G0)) :-
   G is G0 + 1.
 
 parse(Ts, S) --> { empty_state(S0) }, initial_pos, turtledoc(Ts, [], S0, S).
@@ -701,9 +704,9 @@ literal(X, Tkn0, Tkn, S) -->
     /* 6.5 [17] (inlined in tokenizer) [13 : case 0] */
     string(Str)   - ( token_(literal_string, Tkn1), rdf_literal(X, Str, Tkn1, Tkn, S) ),
     /* 6.5 [16] (inlined in tokenizer) [13 : case 1] */
-    number(T, N)  - ( { tag_type(T, Ty), X = literal(Ty, N) }, token_(literal_number, Tkn) ),
+    number(T, N)  - ( { tag_iri(T, Ty), X = literal(Ty, N) }, token_(literal_number, Tkn) ),
     /* 6.5 [133s] (inlined in tokenizer) [13 : case 2] */
-    boolean(B)    - ( { tag_type(boolean, Ty), X = literal(Ty, B) }, token_(literal_boolean, Tkn) )
+    boolean(B)    - ( { tag_iri(boolean, Ty), X = literal(Ty, B) }, token_(literal_boolean, Tkn) )
   ]).
 
 /* 6.5 [14] */
@@ -722,11 +725,11 @@ collection(X, Tkn0, Ts0, Ts, S0, S) -->
 rdf_literal(X, Str, Tkn0, Tkn, S) -->
   match_expect_token(Tkn0, rdf_literal, [
     /* 6.5 [128s : case 0] */
-    =(langtag(L))     - ( { tag_type(lang_string, Ty), X = literal(Ty, @(Str, L)) }, token_(rdf_literal_langtag, Tkn) ),
+    =(langtag(L))     - ( { tag_iri(lang_string, Ty), X = literal(Ty, @(Str, L)) }, token_(rdf_literal_langtag, Tkn) ),
     /* 6.5 [128s : case 1] */
     =(double_carrot)  - ( { X = literal(Ty, Str) }, token_(rdf_literal_double_carrot, Tkn1), { iri(Ty, Tkn1, S) }, token_(rdf_literal_iri, Tkn) ),
     /* 6.5 [128s : case failed_optional] */
-    object_follow_t   - { tag_type(string, Ty), X = literal(Ty, Str), Tkn0 = Tkn }
+    object_follow_t   - { tag_iri(string, Ty), X = literal(Ty, Str), Tkn0 = Tkn }
   ]).
 
 /* 6.5 [135s] */

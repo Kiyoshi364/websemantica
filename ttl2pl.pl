@@ -22,7 +22,7 @@ if_(If_1, Then_2, Else_2) -->
 ]).
 
 read_triples(Stream, Ts) :-
-  phrase_from_stream(parse(Ts, _), Stream).
+  phrase_from_stream(parse(Ts, _), Stream), !.
 
 run_file(File) :-
   setup_call_cleanup(
@@ -33,19 +33,22 @@ run_file(File) :-
   current_output(OStream),
   phrase_to_stream(foldl(triple, Ts), OStream).
 
-triple(t(S, V, O)) --> "rdf(", resource(S), ", ", resource(V), ", ", resource(O), ").\n".
+triple(t(S, V, O)) --> "rdf(", node(S), ", ", node(V), ", ", node(O), ").\n".
 
-resource(X) -->
-  if_(X = literal(Ty, V),
-    ( format_("literal(~q, ", [Ty]),
-      if_(V = @(S, L),
-        ( "@(\"", prolog_string(S), "\", \"", prolog_string(L), "\")" ),
-        ( "\"", prolog_string(V), "\"" )
-      ),
-      ")"
-    ),
-    format_("~q", [X])
-  ).
+node(resource(T, X)) --> resource(T, X).
+node(literal(resource(T, Ty), V)) -->
+  "literal(", resource(T, Ty), ", ",
+  if_(V = @(S, L),
+    ( "@(\"", prolog_string(S), "\", \"", prolog_string(L), "\")" ),
+    ( "\"", prolog_string(V), "\"" )
+  ),
+  ")".
+
+resource(iri, Iri) --> format_("~a", [Iri]).
+resource(blank(L), N) --> blank(L, N).
+
+blank(labeled, N) --> format_("~q", [N]).
+blank(unlabeled, N) --> format_("_:~N", [N]).
 
 prolog_string([]) --> [].
 prolog_string([H | T]) --> prolog_char(H), prolog_string(T).
