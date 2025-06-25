@@ -148,6 +148,14 @@ comment(Comment) -->
     )
   ).
 
+open_square(A) -->
+  char(C0, L0),
+  match(C0, open_square, [
+    =(' ')   - open_square(A),
+    =(']')   - { A = anon },
+    =(C0)    - ( { A = open_square }, unchar(C0, L0) )
+  ]).
+
 carrot(A) -->
   char(C0, L0),
   if_(C0 = (^),
@@ -488,7 +496,7 @@ token(T) -->
     at_t      - ( { T = tkn(L0, langtag(L)) }, langtag(L) ),
     =('(')    - { T = tkn(L0, open_par) },
     =(')')    - { T = tkn(L0, close_par) },
-    =('[')    - { T = tkn(L0, open_square) },
+    =('[')    - ( { T = tkn(L0, A) }, open_square(A) ),
     =(']')    - { T = tkn(L0, close_square) },
     =('^')    - ( { T = tkn(L0, A) }, carrot(A) ),
     =('<')    - ( { T = tkn(L0, iriref(R)) }, iriref(R) ),
