@@ -64,21 +64,31 @@ test_tokenizer_comment :-
 true.
 
 test_tokenizer_special_chars :-
-  In = "_,;.()[ ][^^]a^",
+  In = ",;.()[ ][^^]a^",
   Out = [
-    tkn(pos(0,0,0), underscore),
-    tkn(pos(0,1,1), comma),
-    tkn(pos(0,2,2), semi),
-    tkn(pos(0,3,3), dot),
-    tkn(pos(0,4,4), open_par),
-    tkn(pos(0,5,5), close_par),
-    tkn(pos(0,6,6), anon),
-    tkn(pos(0,9,9), open_square),
-    tkn(pos(0,10,10), double_carrot),
-    tkn(pos(0,12,12), close_square),
-    tkn(pos(0,13,13), a),
-    tkn(pos(0,14,14), carrot),
-    tkn(pos(0,15,15), eof)
+    tkn(pos(0,0,0), comma),
+    tkn(pos(0,1,1), semi),
+    tkn(pos(0,2,2), dot),
+    tkn(pos(0,3,3), open_par),
+    tkn(pos(0,4,4), close_par),
+    tkn(pos(0,5,5), anon),
+    tkn(pos(0,8,8), open_square),
+    tkn(pos(0,9,9), double_carrot),
+    tkn(pos(0,11,11), close_square),
+    tkn(pos(0,12,12), a),
+    tkn(pos(0,13,13), carrot),
+    tkn(pos(0,14,14), eof)
+  ],
+  meta_test_tokenizer_output(In, Out),
+true.
+
+test_tokenizer_blanknodelabel :-
+  In = "_:a _:1.2.",
+  Out = [
+    tkn(pos(0,0,0), blank_node("_:a")),
+    tkn(pos(0,4,4), blank_node("_:1.2")),
+    tkn(pos(0,9,9), dot),
+    tkn(pos(0,10,10), eof)
   ],
   meta_test_tokenizer_output(In, Out),
 true.

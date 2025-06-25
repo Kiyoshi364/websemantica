@@ -148,6 +148,49 @@ comment(Comment) -->
     )
   ).
 
+/* 6.5 [141s] */
+blanknodelabel(N) -->
+  char(C0, P0),
+  match(C0, blanknodelabel, [
+    =(:)   - ( { N = [C0 | N1] }, blanknodelabel_colon(N1) ),
+    =(C0)  - { throw(error(invalid_blanknodelabel_at(C0, P0))) }
+  ]).
+
+blanknodelabel_colon(N) -->
+  char(C0, P0),
+  match(C0, blanknodelabel_colon, [
+    pn_chars_u_t     - ( { N = [C0 | N1] }, blanknodelabel_colon_after(N1) ),
+    digit_t          - ( { N = [C0 | N1] }, blanknodelabel_colon_after(N1) ),
+    =(C0)            - { throw(error(invalid_blanknodelabel_at(C0, P0))) }
+  ]).
+
+blanknodelabel_colon_after(N) -->
+  char(C0, P0),
+  match(C0, blanknodelabel_colon_after, [
+    eof_t            - ( { N = [] }, unchar(C0, P0) ),
+    pn_chars_t       - ( { N = [C0 | N1] }, blanknodelabel_colon_after(N1) ),
+    =('.')           - ( blanknodelabel_colon_dot(N, P0) ),
+    =(C0)            - ( { N = [] }, unchar(C0, P0) )
+  ]).
+
+blanknodelabel_colon_dot(N, P_1) -->
+  char(C0, P0),
+  match(C0, blanknodelabel_colon_dot, [
+    eof_t            - ( { N = [] }, unchar(C0, P0), unchar('.', P_1) ),
+    pn_chars_t       - ( { N = ['.', C0 | N1] }, blanknodelabel_colon_after(N1) ),
+    =('.')           - ( { N = ['.', C0 | N1] }, blanknodelabel_colon_dotdot(N1) ),
+    =(C0)            - ( { N = [] }, unchar(C0, P0), unchar('.', P_1) )
+  ]).
+
+blanknodelabel_colon_dotdot(N) -->
+  char(C0, P0),
+  match(C0, blanknodelabel_colon_dotdot, [
+    eof_t            - { throw(error(invalid_blanknodelabel_afterdot_at(C0, P0))) },
+    pn_chars_t       - ( { N = [C0 | N1] }, blanknodelabel_colon_after(N1) ),
+    =('.')           - ( { N = [C0 | N1] }, blanknodelabel_colon_dotdot(N1) ),
+    =(C0)            - { throw(error(invalid_blanknodelabel_afterdot_at(C0, P0))) }
+  ]).
+
 open_square(A) -->
   char(C0, L0),
   match(C0, open_square, [
@@ -489,7 +532,7 @@ token(T) -->
     ws_t      - token(T),
     eof_t     - { T = tkn(L0, eof) },
     comment_t - ( comment(_), token(T) ),
-    under_t   - { T = tkn(L0, underscore) },
+    under_t   - ( { T = tkn(L0, blank_node(['_'|N])) }, blanknodelabel(N) ),
     comma_t   - { T = tkn(L0, comma) },
     semi_t    - { T = tkn(L0, semi) },
     dot_t     - { T = tkn(L0, dot) },
