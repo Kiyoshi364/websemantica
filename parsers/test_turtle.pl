@@ -473,6 +473,21 @@ test_parser_base_override :-
   meta_test_parser_output(In, Ts, S),
 true.
 
+test_parser_base_blanknode :-
+  In = "[ <verb1> <obj1> ]. [ <verb2> <obj2> ] <verb3> <obj3> ." ,% TODO: ; <verb4> [ <verb5> <obj5> ], [ ] .",
+  Ts = [
+    t(iri(blank(0)), iri('verb1'), iri('obj1')),
+    t(iri(blank(1)), iri('verb2'), iri('obj2')),
+    t(iri(blank(1)), iri('verb3'), iri('obj3'))
+    % t(iri(blank(2)), iri('verb5'), iri('obj5')),
+    % t(iri(blank(1)), iri('verb4'), iri(blank(2))),
+    % t(iri(blank(1)), iri('verb4'), iri(blank(3)))
+  ],
+  % S = ps_b_b([], "", 4),
+  S = ps_b_b([], "", 2),
+  meta_test_parser_output(In, Ts, S),
+true.
+
 %%%%%%%%%%%%%%%  END  Parser %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

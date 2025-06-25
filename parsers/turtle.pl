@@ -552,7 +552,7 @@ append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
     ( append(P, R, Xs), iri_chars(X, Xs) ),
     throw(error(prefix_not_defined(N)))
   ).
-gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), blanknode(G0)) :-
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), iri(blank(G0))) :-
   G is G0 + 1.
 
 parse(Ts, S) --> { empty_state(S0) }, initial_pos, turtledoc(Ts, [], S0, S).
@@ -618,33 +618,35 @@ prefixid_(S0, S) -->
 triples_t(Tkn, T) :- ';'(iri_t(Tkn), memberd_t(Tkn, [open_par, open_square]), T).
 triples(Tkn0, Ts0, Ts, S0, S) -->
   if_token(Tkn0, =(open_square),
-    triples_blanknode(Tkn0, Ts0, Ts, S0, S),
-    triples_subject(Tkn0, Ts0, Ts, S0, S)
-  ).
+    triples_blanknode(Tkn, Ts0, Ts, S0, S),
+    triples_subject(Tkn0, Tkn, Ts0, Ts, S0, S)
+  ),
+  matcheq_expect_token(Tkn, triples, [dot-[]]).
 
 /* 6.5 [6 : case 0] */
-triples_subject(Tkn0, Ts0, Ts, S0, S) -->
+triples_subject(Tkn0, Tkn, Ts0, Ts, S0, S) -->
   subject(Sub, Tkn0, Ts0, Ts1, S0, S1),
   token_(triples_subject, Tkn1),
-  predicate_list(Sub, Tkn1, Ts1, Ts, S1, S).
+  predicate_list(Sub, Tkn1, Tkn, Ts1, Ts, S1, S).
 
 /* 6.5 [6 : case 1] */
-triples_blanknode(Tkn0, Ts0, Ts, S0, S) -->
-  blank_node_properties(Sub, Tkn0, Ts0, Ts1, S0, S1),
+triples_blanknode(Tkn, Ts0, Ts, S0, S) -->
+  blank_node_property_list(Sub, Ts0, Ts1, S0, S1),
   token_(triples_blanknode, Tkn1),
   if_token(Tkn1, =(dot),
-    { Ts = Ts1, S = S1 },
-    predicate_list(Sub, Tkn1, Ts1, Ts, S1, S)
+    { Tkn = Tkn1, Ts = Ts1, S = S1 },
+    predicate_list(Sub, Tkn1, Tkn, Ts1, Ts, S1, S)
   ).
 
 /* 6.5 [7] */
-predicate_list(Sub, Tkn0, Ts0, Ts, S0, S) -->
+predicate_list(Sub, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   { Ts0 = Ts1, S0 = S1, verb(Verb, Tkn0, S0) },
   token_(predicate_list, Tkn1),
   object_list(Sub, Verb, Tkn1, Tkn2, Ts1, Ts2, S1, S2),
   matcheq_expect_token(Tkn2, predicate_list, [
-    semi  - ( token_(predicate_list_semi, Tkn3), predicate_list(Sub, Tkn3, Ts2, Ts, S2, S) ),
-    dot   - { Ts = Ts2, S = S2 }
+    semi          - ( token_(predicate_list_semi, Tkn3), predicate_list(Sub, Tkn3, Tkn, Ts2, Ts, S2, S) ),
+    close_square  - { Tkn = Tkn2, Ts = Ts2, S = S2 },
+    dot           - { Tkn = Tkn2, Ts = Ts2, S = S2 }
   ]).
 
 /* 6.5 [8] */
@@ -682,10 +684,12 @@ object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, object, [
     /* 6.5 [12 : case 0] */
     iri_t           - ( { Ts = Ts0, S = S0, iri(Obj, Tkn0, S0) }, token_(object_iri, Tkn) ),
-    /* 6.5 [12 : case 1 and 3] */
-    =(open_square)  - ( blank_node_or_propertylist(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_blanknode, Tkn) ),
+    /* 6.5 [12 : case 1] */
+    blank_node_t    - ( { Ts = Ts0 }, blank_node(Obj, Tkn0, S0, S), token_(object_blank_node, Tkn) ),
     /* 6.5 [12 : case 2] */
     =(open_par)     - ( collection(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_collection, Tkn) ),
+    /* 6.5 [12 : case 3] */
+    =(open_square)  - ( blank_node_property_list(Obj, Ts0, Ts, S0, S), token_(object_blanknodepropertylist, Tkn) ),
     /* 6.5 [12 : case 4] */
     literal_t       - ( { Ts = Ts0, S = S0 }, literal(Obj, Tkn0, Tkn, S) )
   ]).
@@ -703,11 +707,11 @@ literal(X, Tkn0, Tkn, S) -->
   ]).
 
 /* 6.5 [14] */
-blank_node_properties(X, Tkn0, Ts0, Ts, S0, S) -->
-  { Tkn0 = open_square }, % TODO: remove this check
-  { gen_blank_node(X, S0, S1) },
-  token_(blank_node_properties, Tkn1),
-  predicate_list(X, Tkn1, Ts0, Ts, S1, S).
+blank_node_property_list(X, Ts0, Ts, S0, S) -->
+  { gen_blanknode(S0, S1, X) },
+  token_(blank_node_property_list, Tkn0),
+  predicate_list(X, Tkn0, Tkn, Ts0, Ts, S1, S),
+  matcheq_expect_token(Tkn, blank_node_property_list, [close_square-[]]).
 
 /* 6.5 [15] */
 collection(X, Tkn0, Ts0, Ts, S0, S) -->
