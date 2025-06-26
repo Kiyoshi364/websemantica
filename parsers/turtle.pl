@@ -597,6 +597,9 @@ cons_prefix_state(N, P, ps_b_b(Ns0, B, G), ps_b_b([N-P | Ns1], B, G)) :-
 iri_atom(resource(iri, A), A).
 iri_chars(Iri, Str) :- atom_chars(A, Str), iri_atom(Iri, A).
 
+blanklabel_atom(resource(blank(labeled), A), A).
+blanklabel_chars(BL, Str) :- atom_chars(A, Str), blanklabel_atom(BL, A).
+
 append_base(ps_b_b(_, B, _), R, X) :-
   % TODO: smartter checking
   append(B, R, Xs),
@@ -794,7 +797,9 @@ iri(X, Tkn0, S) :-
   ]).
 
 /* 6.5 [137s] */
-blank_node_t(Tkn, T) :- memberd_t(Tkn, [], T).
+blank_node_t(Tkn, T) :- memberd_t(Tkn, [anon, blank_node(_)], T).
 blank_node(X, Tkn0, S0, S) -->
-  % TODO
-[].
+  matcheq_expect_token(Tkn0, blank_node, [
+    anon            - { gen_blanknode(S0, S, X) },
+    blank_node(N)   - { S = S0, blanklabel_chars(X, N) }
+  ]).

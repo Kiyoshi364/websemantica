@@ -484,18 +484,18 @@ test_parser_base_override :-
   meta_test_parser_output(In, Ts, S),
 true.
 
-test_parser_base_blanknode :-
-  In = "[ <verb1> <obj1> ]. [ <verb2> <obj2> ] <verb3> <obj3> ." ,% TODO: ; <verb4> [ <verb5> <obj5> ], [ ] .",
+test_parser_blanknode :-
+  In = "[ <verb1> <obj1> ]. [ <verb2> <obj2> ] <verb3> <obj3> ; <verb4> [ <verb5> <obj5> ; <verb6> _:asdf ], [ ] .",
   Ts = [
     t(resource(blank(unlabeled), 0), resource(iri, 'verb1'), resource(iri, 'obj1')),
     t(resource(blank(unlabeled), 1), resource(iri, 'verb2'), resource(iri, 'obj2')),
-    t(resource(blank(unlabeled), 1), resource(iri, 'verb3'), resource(iri, 'obj3'))
-    % t(resource(blank(unlabeled), 2), resource(iri, 'verb5'), resource(iri, 'obj5')),
-    % t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 2)),
-    % t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 3))
+    t(resource(blank(unlabeled), 1), resource(iri, 'verb3'), resource(iri, 'obj3')),
+    t(resource(blank(unlabeled), 2), resource(iri, 'verb5'), resource(iri, 'obj5')),
+    t(resource(blank(unlabeled), 2), resource(iri, 'verb6'), resource(blank(labeled), '_:asdf')),
+    t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 1), resource(iri, 'verb4'), resource(blank(unlabeled), 3))
   ],
-  % S = ps_b_b([], "", 4),
-  S = ps_b_b([], "", 2),
+  S = ps_b_b([], "", 4),
   meta_test_parser_output(In, Ts, S),
 true.
 
