@@ -581,6 +581,9 @@ tag_type(double, 'http://www.w3.org/2001/XMLSchema#double').
 tag_type(string, 'http://www.w3.org/2001/XMLSchema#string').
 tag_type(lang_string, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString').
 tag_type(a, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type').
+tag_type(nil, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#nil').
+tag_type(first, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#first').
+tag_type(rest, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#rest').
 
 tag_iri(Tag, Iri) :- tag_type(Tag, Ty), iri_atom(Iri, Ty).
 
@@ -599,6 +602,8 @@ iri_chars(Iri, Str) :- atom_chars(A, Str), iri_atom(Iri, A).
 
 blanklabel_atom(resource(blank(labeled), A), A).
 blanklabel_chars(BL, Str) :- atom_chars(A, Str), blanklabel_atom(BL, A).
+
+add_triple(S, V, O, [t(S, V, O) | Ts], Ts).
 
 append_base(ps_b_b(_, B, _), R, X) :-
   % TODO: smartter checking
@@ -709,7 +714,7 @@ predicate_list(Sub, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 /* 6.5 [8] */
 object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   object(Obj, Tkn0, Tkn1, Ts0, Ts1, S0, S1),
-  { Ts1 = [t(Sub, Verb, Obj) | Ts2] },
+  { add_triple(Sub, Verb, Obj, Ts1, Ts2) },
   if_token(Tkn1, =(comma),
     ( token_(object_list_comma, Tkn2), object_list(Sub, Verb, Tkn2, Tkn, Ts2, Ts, S1, S) ),
     { Tkn1 = Tkn, Ts = Ts2, S = S1 }
@@ -732,7 +737,7 @@ subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
     /* 6.5 [10 : case 1] */
     blank_node_t  - { Ts = Ts0, blank_node(Sub, Tkn0, S0, S) },
     /* 6.5 [10 : case 2] */
-    =(open_par)   - collection(Sub, Tkn0, Ts0, Ts, S0, S)
+    =(open_par)   - ( token_(subject_collection, Tkn1), collection(Sub, Tkn1, Ts0, Ts, S0, S) )
   ]).
 
 /* 6.5 [12] */
@@ -744,7 +749,7 @@ object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
     /* 6.5 [12 : case 1] */
     blank_node_t    - ( { Ts = Ts0 }, blank_node(Obj, Tkn0, S0, S), token_(object_blank_node, Tkn) ),
     /* 6.5 [12 : case 2] */
-    =(open_par)     - ( collection(Obj, Tkn0, Ts0, Ts, S0, S), token_(object_collection, Tkn) ),
+    =(open_par)     - ( token_(object_collection, Tkn1), collection(Obj, Tkn1, Ts0, Ts, S0, S), token_(object_collection_after, Tkn) ),
     /* 6.5 [12 : case 3] */
     =(open_square)  - ( blank_node_property_list(Obj, Ts0, Ts, S0, S), token_(object_blanknodepropertylist, Tkn) ),
     /* 6.5 [12 : case 4] */
@@ -772,8 +777,18 @@ blank_node_property_list(X, Ts0, Ts, S0, S) -->
 
 /* 6.5 [15] */
 collection(X, Tkn0, Ts0, Ts, S0, S) -->
-  % TODO
-[].
+  if_token(Tkn0, =(close_par),
+    { Ts = Ts0, S = S0, tag_iri(nil, X) },
+    ( { gen_blanknode(S0, S1, X) },
+      object(Obj, Tkn0, Tkn, Ts0, Ts1, S1, S2),
+      { tag_iri(first, First),
+        tag_iri(rest, Rest),
+        add_triple(X, First, Obj, Ts1, Ts2),
+        add_triple(X, Rest, X1, Ts2, Ts3)
+      },
+      collection(X1, Tkn, Ts3, Ts, S2, S)
+    )
+  ).
 
 /* 6.5 [128s] */
 rdf_literal(X, Str, Tkn0, Tkn, S) -->

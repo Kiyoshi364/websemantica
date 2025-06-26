@@ -499,6 +499,27 @@ test_parser_blanknode :-
   meta_test_parser_output(In, Ts, S),
 true.
 
+test_parser_collection :-
+  In = "<sub> <verb> ( 1234 'Hello'@en 'asdf' ) .",
+  Ts = [
+    t(resource(blank(unlabeled), 0), First, literal(IntegerTy, "1234")),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(blank(unlabeled), 1), First, literal(LangStrTy, @("Hello", "en"))),
+    t(resource(blank(unlabeled), 1), Rest, resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 2), First, literal(StringTy, "asdf")),
+    t(resource(blank(unlabeled), 2), Rest, Nil),
+    t(resource(iri, 'sub'), resource(iri, 'verb'), resource(blank(unlabeled), 0))
+  ],
+  S = ps_b_b([], "", 3),
+  tag_iri(first, First),
+  tag_iri(rest, Rest),
+  tag_iri(nil, Nil),
+  tag_iri(integer, IntegerTy),
+  tag_iri(lang_string, LangStrTy),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
 %%%%%%%%%%%%%%%  END  Parser %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
