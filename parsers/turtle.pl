@@ -606,11 +606,12 @@ blanklabel_chars(BL, Str) :- atom_chars(A, Str), blanklabel_atom(BL, A).
 add_triple(S, V, O, [t(S, V, O) | Ts], Ts).
 
 append_base(ps_b_b(_, B, _), R, X) :-
-  % TODO: smartter checking
+  % TODO: smarter checking
   append(B, R, Xs),
   iri_chars(X, Xs).
 append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
   if_(memberd_t(N-P, Ns),
+    % TODO: IRI normalization
     ( append(P, R, Xs), iri_chars(X, Xs) ),
     throw(error(prefix_not_defined(N)))
   ).
@@ -677,7 +678,7 @@ prefixid_(S0, S) -->
   ]).
 
 /* 6.5 [6] */
-triples_t(Tkn, T) :- ';'(iri_t(Tkn), memberd_t(Tkn, [open_par, open_square]), T).
+triples_t(Tkn, T) :- ';'(iri_t(Tkn), memberd_t(Tkn, [open_par, open_square, anon, blank_node(_)]), T).
 triples(Tkn0, Ts0, Ts, S0, S) -->
   if_token(Tkn0, =(open_square),
     triples_blanknode(Tkn, Ts0, Ts, S0, S),
@@ -724,7 +725,7 @@ object_list(Sub, Verb, Tkn0, Tkn, Ts0, Ts, S0, S) -->
 verb(Pred, Tkn0, S) :-
   if_token(Tkn0, =(a),
     /* 6.5 [9 : case 1] */
-    { tag_type(a, Pred) },
+    tag_iri(a, Pred),
     /* 6.5 [11] (inlined) [9 : case 0] */
     iri(Pred, Tkn0, S)
   ).
@@ -735,13 +736,13 @@ subject(Sub, Tkn0, Ts0, Ts, S0, S) -->
     /* 6.5 [10 : case 0] */
     iri_t         - { Ts = Ts0, S = S0, iri(Sub, Tkn0, S0) },
     /* 6.5 [10 : case 1] */
-    blank_node_t  - { Ts = Ts0, blank_node(Sub, Tkn0, S0, S) },
+    blank_node_t  - ( { Ts = Ts0 }, blank_node(Sub, Tkn0, S0, S) ),
     /* 6.5 [10 : case 2] */
     =(open_par)   - ( token_(subject_collection, Tkn1), collection(Sub, Tkn1, Ts0, Ts, S0, S) )
   ]).
 
 /* 6.5 [12] */
-object_follow_t(Tkn, T) :- memberd_t(Tkn, [dot, semi, comma, close_par, close_square], T).
+object_follow_t(Tkn, T) :- ;(literal_t(Tkn), memberd_t(Tkn, [dot, semi, comma, close_par, close_square]), T).
 object(Obj, Tkn0, Tkn, Ts0, Ts, S0, S) -->
   match_expect_token(Tkn0, object, [
     /* 6.5 [12 : case 0] */

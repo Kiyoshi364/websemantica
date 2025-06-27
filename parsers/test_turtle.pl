@@ -5,7 +5,7 @@
 :- use_module(turtle, [
   empty_pos/1, token//1,
   empty_state/1, parse//2,
-  tag_iri/2
+  tag_type/2, tag_iri/2
 ]).
 
 :- use_module(library(dcgs), [phrase/3]).
@@ -519,6 +519,414 @@ test_parser_collection :-
   tag_iri(string, StringTy),
   meta_test_parser_output(In, Ts, S),
 true.
+
+%%%%%%%%%%%%%%% BEGIN Parser Spec Examples %%%%%%%%%%%%%%%
+
+/* Spec is available at: https://www.w3.org/TR/turtle/ */
+
+test_spec_example1 :-
+  In = "@base <http://example.org/> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n@prefix rel: <http://www.perceive.net/schemas/relationship/> .\n<#green-goblin>\n    rel:enemyOf <#spiderman> ;\n    a foaf:Person ;    # in the context of the Marvel universe\n    foaf:name \"Green Goblin\" .\n<#spiderman>\n    rel:enemyOf <#green-goblin> ;\n    a foaf:Person ;\n    foaf:name \"Spiderman\", \"Человек-паук\"@ru .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#green-goblin'), resource(iri, 'http://www.perceive.net/schemas/relationship/enemyOf'), resource(iri, 'http://example.org/#spiderman')),
+    t(resource(iri, 'http://example.org/#green-goblin'), resource(iri, Type), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
+    t(resource(iri, 'http://example.org/#green-goblin'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Green Goblin")),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://www.perceive.net/schemas/relationship/enemyOf'), resource(iri, 'http://example.org/#green-goblin')),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, Type), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Spiderman")),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(LangStrTy, @("Человек-паук", "ru")))
+  ],
+  S = ps_b_b([
+    "rel"-"http://www.perceive.net/schemas/relationship/",
+    "foaf"-"http://xmlns.com/foaf/0.1/",
+    "rdfs"-"http://www.w3.org/2000/01/rdf-schema#",
+    "rdf"-"http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    ], "http://example.org/", 0),
+  tag_type(a, Type),
+  tag_iri(string, StringTy),
+  tag_iri(lang_string, LangStrTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example2 :-
+  In = "<http://example.org/#spiderman> <http://www.perceive.net/schemas/relationship/enemyOf> <http://example.org/#green-goblin> .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://www.perceive.net/schemas/relationship/enemyOf'), resource(iri, 'http://example.org/#green-goblin'))
+  ],
+  S = ps_b_b([], "", 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example3_4 :-
+  In3 = "<http://example.org/#spiderman> <http://www.perceive.net/schemas/relationship/enemyOf> <http://example.org/#green-goblin> ;\n\t\t\t\t<http://xmlns.com/foaf/0.1/name> \"Spiderman\" .",
+  In4 = "<http://example.org/#spiderman> <http://www.perceive.net/schemas/relationship/enemyOf> <http://example.org/#green-goblin> .\n<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Spiderman\" .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://www.perceive.net/schemas/relationship/enemyOf'), resource(iri, 'http://example.org/#green-goblin')),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Spiderman"))
+  ],
+  S = ps_b_b([], "", 0),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In3, Ts, S),
+  meta_test_parser_output(In4, Ts, S),
+true.
+
+test_spec_example5_6 :-
+  In5 = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Spiderman\", \"Человек-паук\"@ru .",
+  In6 = "<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Spiderman\" .\n<http://example.org/#spiderman> <http://xmlns.com/foaf/0.1/name> \"Человек-паук\"@ru .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Spiderman")),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(LangStrTy, @("Человек-паук", "ru")))
+  ],
+  S = ps_b_b([], "", 0),
+  tag_iri(string, StringTy),
+  tag_iri(lang_string, LangStrTy),
+  meta_test_parser_output(In5, Ts, S),
+  meta_test_parser_output(In6, Ts, S),
+true.
+
+test_spec_example7_8 :-
+  In7 = "@prefix somePrefix: <http://www.perceive.net/schemas/relationship/> .\n<http://example.org/#green-goblin> somePrefix:enemyOf <http://example.org/#spiderman> .",
+  In8 = "PREFIX somePrefix: <http://www.perceive.net/schemas/relationship/>\n<http://example.org/#green-goblin> somePrefix:enemyOf <http://example.org/#spiderman> .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#green-goblin'), resource(iri, 'http://www.perceive.net/schemas/relationship/enemyOf'), resource(iri, 'http://example.org/#spiderman'))
+  ],
+  S = ps_b_b(["somePrefix"-"http://www.perceive.net/schemas/relationship/"], "", 0),
+  meta_test_parser_output(In7, Ts, S),
+  meta_test_parser_output(In8, Ts, S),
+true.
+
+test_spec_example9 :-
+  In = "# A triple with all absolute IRIs\n<http://one.example/subject1> <http://one.example/predicate1> <http://one.example/object1> .\n@base <http://one.example/> .\n<subject2> <predicate2> <object2> .     # relative IRIs, e.g. http://one.example/subject2\nBASE <http://one.example/>\n<subject2> <predicate2> <object2> .     # relative IRIs, e.g. http://one.example/subject2\n@prefix p: <http://two.example/> .\np:subject3 p:predicate3 p:object3 .     # prefixed name, e.g. http://two.example/subject3\nPREFIX p: <http://two.example/>\np:subject3 p:predicate3 p:object3 .     # prefixed name, e.g. http://two.example/subject3\n@prefix p: <path/> .                    # prefix p: now stands for http://one.example/path/\np:subject4 p:predicate4 p:object4 .     # prefixed name, e.g. http://one.example/path/subject4\n@prefix : <http://another.example/> .    # empty prefix\n:subject5 :predicate5 :object5 .        # prefixed name, e.g. http://another.example/subject5\n:subject6 a :subject7 .                 # same as :subject6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> :subject7 .\n<http://伝言.example/?user=أكرم&amp;channel=R%26D> a :subject8 . # a multi-script subject IRI .",
+  % TODO: This needs fixing when we get a "smarter checking" on `append_base/2`
+  Ts = [
+    t(resource(iri, 'http://one.example/subject1'), resource(iri, 'http://one.example/predicate1'), resource(iri, 'http://one.example/object1')),
+    t(resource(iri, 'http://one.example/subject2'), resource(iri, 'http://one.example/predicate2'), resource(iri, 'http://one.example/object2')),
+    t(resource(iri, 'http://one.example/subject2'), resource(iri, 'http://one.example/predicate2'), resource(iri, 'http://one.example/object2')),
+    t(resource(iri, 'http://two.example/subject3'), resource(iri, 'http://two.example/predicate3'), resource(iri, 'http://two.example/object3')),
+    t(resource(iri, 'http://two.example/subject3'), resource(iri, 'http://two.example/predicate3'), resource(iri, 'http://two.example/object3')),
+    % t(resource(iri, 'http://one.example/path/subject4'), resource(iri, 'http://one.example/path/predicate4'), resource(iri, 'http://one.example/path/object4')),
+    t(resource(iri, 'path/subject4'), resource(iri, 'path/predicate4'), resource(iri, 'path/object4')),
+    t(resource(iri, 'http://another.example/subject5'), resource(iri, 'http://another.example/predicate5'), resource(iri, 'http://another.example/object5')),
+    t(resource(iri, 'http://another.example/subject6'), resource(iri, Type), resource(iri, 'http://another.example/subject7')),
+    % t(resource(iri, 'http://伝言.example/?user=أكرم&amp;channel=R%26D'), resource(iri, Type), resource(iri, 'http://another.example/subject8'))
+    t(resource(iri, 'http://one.example/http://伝言.example/?user=أكرم&amp;channel=R%26D'), resource(iri, Type), resource(iri, 'http://another.example/subject8'))
+  ],
+  S = ps_b_b([
+    ""-"http://another.example/",
+    % "p"-"http://one.example/path"
+    "p"-"path/"
+  ], "http://one.example/", 0),
+  tag_type(a, Type),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example10 :-
+  In = "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n<http://example.org/#green-goblin> foaf:name \"Green Goblin\" .\n<http://example.org/#spiderman> foaf:name \"Spiderman\" .",
+  Ts = [
+    t(resource(iri, 'http://example.org/#green-goblin'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Green Goblin")),
+    t(resource(iri, 'http://example.org/#spiderman'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Spiderman"))
+  ],
+  S = ps_b_b([
+    "foaf"-"http://xmlns.com/foaf/0.1/"
+  ], "", 0),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example11 :-
+  In = "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n@prefix show: <http://example.org/vocab/show/> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\nshow:218 rdfs:label \"That Seventies Show\"^^xsd:string .            # literal with XML Schema string datatype\nshow:218 rdfs:label \"That Seventies Show\"^^<http://www.w3.org/2001/XMLSchema#string> . # same as above\nshow:218 rdfs:label \"That Seventies Show\" .                                            # same again\nshow:218 show:localName \"That Seventies Show\"@en .                 # literal with a language tag\nshow:218 show:localName 'Cette Série des Années Soixante-dix'@fr . # literal delimited by single quote\nshow:218 show:localName \"Cette Série des Années Septante\"@fr-be .  # literal with a region subtag\nshow:218 show:blurb '''This is a multi-line                        # literal with embedded new lines and quotes\nliteral with many quotes (\"\"\"\"\")\nand up to two sequential apostrophes ('').''' .",
+  Ts = [
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(StringTy, "That Seventies Show")),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(StringTy, "That Seventies Show")),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(StringTy, "That Seventies Show")),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://example.org/vocab/show/localName'), literal(LangStrTy, @("That Seventies Show", "en"))),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://example.org/vocab/show/localName'), literal(LangStrTy, @("Cette Série des Années Soixante-dix", "fr"))),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://example.org/vocab/show/localName'), literal(LangStrTy, @("Cette Série des Années Septante", "fr-be"))),
+    t(resource(iri, 'http://example.org/vocab/show/218'), resource(iri, 'http://example.org/vocab/show/blurb'), literal(StringTy, "This is a multi-line                        # literal with embedded new lines and quotes\nliteral with many quotes (\"\"\"\"\")\nand up to two sequential apostrophes ('')."))
+  ],
+  S = ps_b_b([
+    "xsd"-"http://www.w3.org/2001/XMLSchema#",
+    "show"-"http://example.org/vocab/show/",
+    "rdfs"-"http://www.w3.org/2000/01/rdf-schema#"
+  ], "", 0),
+  tag_iri(string, StringTy),
+  tag_iri(lang_string, LangStrTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example12 :-
+  In = "@prefix : <http://example.org/elements> .                                                                              \n<http://en.wikipedia.org/wiki/Helium>                                                                                  \n    :atomicNumber 2 ;               # xsd:integer                                                                      \n    :atomicMass 4.002602 ;          # xsd:decimal                                                                      \n    :specificGravity 1.663E-4 .     # xsd:double  ",
+  Ts = [
+    t(resource(iri, 'http://en.wikipedia.org/wiki/Helium'), resource(iri, 'http://example.org/elementsatomicNumber'), literal(IntegerTy, "2")),
+    t(resource(iri, 'http://en.wikipedia.org/wiki/Helium'), resource(iri, 'http://example.org/elementsatomicMass'), literal(DecimalTy, "4.002602")),
+    t(resource(iri, 'http://en.wikipedia.org/wiki/Helium'), resource(iri, 'http://example.org/elementsspecificGravity'), literal(DoubleTy, "1.663E-4"))
+  ],
+  S = ps_b_b([""-"http://example.org/elements"], "", 0),
+  tag_iri(integer, IntegerTy),
+  tag_iri(decimal, DecimalTy),
+  tag_iri(double, DoubleTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example13 :-
+  In = "@prefix : <http://example.org/stats> .\n<http://somecountry.example/census2007>\n    :isLandlocked false .           # xsd:boolean",
+  Ts = [
+    t(resource(iri, 'http://somecountry.example/census2007'), resource(iri, 'http://example.org/statsisLandlocked'), literal(BooleanTy, "false"))
+  ],
+  S = ps_b_b([""-"http://example.org/stats"], "", 0),
+  tag_iri(boolean, BooleanTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example14 :-
+  In = "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n_:alice foaf:knows _:bob .\n_:bob foaf:knows _:alice .",
+  Ts = [
+    t(resource(blank(labeled), '_:alice'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(labeled), '_:bob')),
+    t(resource(blank(labeled), '_:bob'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(labeled), '_:alice'))
+  ],
+  S = ps_b_b(["foaf"-"http://xmlns.com/foaf/0.1/"], "", 0),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example15 :-
+  In = "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n# Someone knows someone else, who has the name \"Bob\".\n[] foaf:knows [ foaf:name \"Bob\" ] .",
+  Ts = [
+    t(resource(blank(unlabeled), 1), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Bob")),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(unlabeled), 1))
+  ],
+  S = ps_b_b(["foaf"-"http://xmlns.com/foaf/0.1/"], "", 2),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example16_17 :-
+  In16 = "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n[ foaf:name \"Alice\" ] foaf:knows [\n    foaf:name \"Bob\" ;\n    foaf:knows [\n        foaf:name \"Eve\" ] ;\n    foaf:mbox <bob@example.com> ] .",
+  In17 = "_:a <http://xmlns.com/foaf/0.1/name> \"Alice\" .\n_:a <http://xmlns.com/foaf/0.1/knows> _:b .\n_:b <http://xmlns.com/foaf/0.1/name> \"Bob\" .\n_:b <http://xmlns.com/foaf/0.1/knows> _:c .\n_:c <http://xmlns.com/foaf/0.1/name> \"Eve\" .\n_:b <http://xmlns.com/foaf/0.1/mbox> <bob@example.com> .",
+  Ts16 = [
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Alice")),
+    t(resource(blank(unlabeled), 1), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Bob")),
+    t(resource(blank(unlabeled), 2), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Eve")),
+    t(resource(blank(unlabeled), 1), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 1), resource(iri, 'http://xmlns.com/foaf/0.1/mbox'), resource(iri, 'bob@example.com')),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(unlabeled), 1))
+  ],
+  Ts17 = [
+    t(resource(blank(labeled), '_:a'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Alice")),
+    t(resource(blank(labeled), '_:a'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(labeled), '_:b')),
+    t(resource(blank(labeled), '_:b'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Bob")),
+    t(resource(blank(labeled), '_:b'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(labeled), '_:c')),
+    t(resource(blank(labeled), '_:c'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(StringTy, "Eve")),
+    t(resource(blank(labeled), '_:b'), resource(iri, 'http://xmlns.com/foaf/0.1/mbox'), resource(iri, 'bob@example.com'))
+  ],
+  S16 = ps_b_b(["foaf"-"http://xmlns.com/foaf/0.1/"], "", 3),
+  S17 = ps_b_b([], "", 0),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In16, Ts16, S16),
+  meta_test_parser_output(In17, Ts17, S17),
+true.
+
+test_spec_example18 :-
+  In = "@prefix : <http://example.org/foo> .\n# the object of this triple is the RDF collection blank node\n:subject :predicate ( :a :b :c ) .\n# an empty collection value - rdf:nil\n:subject :predicate2 () .",
+  Ts = [
+    t(resource(blank(unlabeled), 0), First, resource(iri, 'http://example.org/fooa')),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(blank(unlabeled), 1), First, resource(iri, 'http://example.org/foob')),
+    t(resource(blank(unlabeled), 1), Rest, resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 2), First, resource(iri, 'http://example.org/fooc')),
+    t(resource(blank(unlabeled), 2), Rest, Nil),
+    t(resource(iri, 'http://example.org/foosubject'), resource(iri, 'http://example.org/foopredicate'), resource(blank(unlabeled), 0)),
+    t(resource(iri, 'http://example.org/foosubject'), resource(iri, 'http://example.org/foopredicate2'), Nil)
+  ],
+  S = ps_b_b([""-"http://example.org/foo"], "", 3),
+  tag_iri(first, First),
+  tag_iri(rest, Rest),
+  tag_iri(nil, Nil),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example19 :-
+  In = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n@prefix dc: <http://purl.org/dc/elements/1.1/> .\n@prefix ex: <http://example.org/stuff/1.0/> .\n<http://www.w3.org/TR/rdf-syntax-grammar>\n  dc:title \"RDF/XML Syntax Specification (Revised)\" ;\n  ex:editor [\n    ex:fullname \"Dave Beckett\";\n    ex:homePage <http://purl.org/net/dajobe/>\n  ] .",
+  Ts = [
+    t(resource(iri, 'http://www.w3.org/TR/rdf-syntax-grammar'), resource(iri, 'http://purl.org/dc/elements/1.1/title'), literal(StringTy, "RDF/XML Syntax Specification (Revised)")),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://example.org/stuff/1.0/fullname'), literal(StringTy, "Dave Beckett")),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://example.org/stuff/1.0/homePage'), resource(iri, 'http://purl.org/net/dajobe/')),
+    t(resource(iri, 'http://www.w3.org/TR/rdf-syntax-grammar'), resource(iri, 'http://example.org/stuff/1.0/editor'), resource(blank(unlabeled), 0))
+  ],
+  S = ps_b_b([
+    "ex"-"http://example.org/stuff/1.0/",
+    "dc"-"http://purl.org/dc/elements/1.1/",
+    "rdf"-"http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  ], "", 1),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example20_21 :-
+  In20 = "PREFIX : <http://example.org/stuff/1.0/>\n:a :b ( \"apple\" \"banana\" ) .",
+  In21 = "@prefix : <http://example.org/stuff/1.0/> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n:a :b\n  [ rdf:first \"apple\";\n    rdf:rest [ rdf:first \"banana\";\n               rdf:rest rdf:nil ]\n  ] .",
+  Ts20 = [
+    t(resource(blank(unlabeled), 0), First, literal(StringTy, "apple")),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(blank(unlabeled), 1), First, literal(StringTy, "banana")),
+    t(resource(blank(unlabeled), 1), Rest, Nil),
+    t(resource(iri, 'http://example.org/stuff/1.0/a'), resource(iri, 'http://example.org/stuff/1.0/b'), resource(blank(unlabeled), 0))
+  ],
+  Ts21 = [
+    t(resource(blank(unlabeled), 0), First, literal(StringTy, "apple")),
+    t(resource(blank(unlabeled), 1), First, literal(StringTy, "banana")),
+    t(resource(blank(unlabeled), 1), Rest, Nil),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(iri, 'http://example.org/stuff/1.0/a'), resource(iri, 'http://example.org/stuff/1.0/b'), resource(blank(unlabeled), 0))
+  ],
+  S20 = ps_b_b([""-"http://example.org/stuff/1.0/"], "", 2),
+  S21 = ps_b_b([
+    "rdf"-"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    ""-"http://example.org/stuff/1.0/"
+  ], "", 2),
+  tag_iri(first, First),
+  tag_iri(rest, Rest),
+  tag_iri(nil, Nil),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In20, Ts20, S20),
+  meta_test_parser_output(In21, Ts21, S21),
+true.
+
+test_spec_example22 :-
+  In = "@prefix : <http://example.org/stuff/1.0/> .\n:a :b \"The first line\\nThe second line\\n  more\" .\n:a :b \"\"\"The first line\nThe second line\n  more\"\"\" .",
+  Ts = [
+    t(resource(iri, 'http://example.org/stuff/1.0/a'), resource(iri, 'http://example.org/stuff/1.0/b'), literal(StringTy, "The first line\nThe second line\n  more")),
+    t(resource(iri, 'http://example.org/stuff/1.0/a'), resource(iri, 'http://example.org/stuff/1.0/b'), literal(StringTy, "The first line\nThe second line\n  more"))
+  ],
+  S = ps_b_b([""-"http://example.org/stuff/1.0/"], "", 0),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example23_24 :-
+  In23 = "@prefix : <http://example.org/stuff/1.0/> .\n(1 2.0 3E1) :p \"w\" .",
+  In24 = "@prefix : <http://example.org/stuff/1.0/> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n    _:b0  rdf:first  1 ;\n          rdf:rest   _:b1 .\n    _:b1  rdf:first  2.0 ;\n          rdf:rest   _:b2 .\n    _:b2  rdf:first  3E1 ;\n          rdf:rest   rdf:nil .\n    _:b0  :p         \"w\" . ",
+  Ts23 = [
+    t(resource(blank(unlabeled), 0), First, literal(IntegerTy, "1")),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(blank(unlabeled), 1), First, literal(DecimalTy, "2.0")),
+    t(resource(blank(unlabeled), 1), Rest, resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 2), First, literal(DoubleTy, "3E1")),
+    t(resource(blank(unlabeled), 2), Rest, Nil),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://example.org/stuff/1.0/p'), literal(StringTy, "w"))
+  ],
+  Ts24 = [
+    t(resource(blank(labeled), '_:b0'), First, literal(IntegerTy, "1")),
+    t(resource(blank(labeled), '_:b0'), Rest, resource(blank(labeled), '_:b1')),
+    t(resource(blank(labeled), '_:b1'), First, literal(DecimalTy, "2.0")),
+    t(resource(blank(labeled), '_:b1'), Rest, resource(blank(labeled), '_:b2')),
+    t(resource(blank(labeled), '_:b2'), First, literal(DoubleTy, "3E1")),
+    t(resource(blank(labeled), '_:b2'), Rest, Nil),
+    t(resource(blank(labeled), '_:b0'), resource(iri, 'http://example.org/stuff/1.0/p'), literal(StringTy, "w"))
+  ],
+  S23 = ps_b_b([""-"http://example.org/stuff/1.0/"], "", 3),
+  S24 = ps_b_b([
+    "rdf"-"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    ""-"http://example.org/stuff/1.0/"
+  ], "", 0),
+  tag_iri(first, First),
+  tag_iri(rest, Rest),
+  tag_iri(nil, Nil),
+  tag_iri(string, StringTy),
+  tag_iri(integer, IntegerTy),
+  tag_iri(decimal, DecimalTy),
+  tag_iri(double, DoubleTy),
+  meta_test_parser_output(In23, Ts23, S23),
+  meta_test_parser_output(In24, Ts24, S24),
+true.
+
+test_spec_example25_26 :-
+  In25 = "PREFIX : <http://example.org/stuff/1.0/>\n(1 [:p :q] ( 2 ) ) :p2 :q2 .",
+  In26 = "PREFIX : <http://example.org/stuff/1.0/>\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n    _:b0  rdf:first  1 ;\n          rdf:rest   _:b1 .\n    _:b1  rdf:first  _:b2 .\n    _:b2  :p         :q .\n    _:b1  rdf:rest   _:b3 .\n    _:b3  rdf:first  _:b4 .\n    _:b4  rdf:first  2 ;\n          rdf:rest   rdf:nil .\n    _:b3  rdf:rest   rdf:nil .",
+  Ts25 = [
+    t(resource(blank(unlabeled), 0), First, literal(IntegerTy, "1")),
+    t(resource(blank(unlabeled), 0), Rest, resource(blank(unlabeled), 1)),
+    t(resource(blank(unlabeled), 2), resource(iri, 'http://example.org/stuff/1.0/p'), resource(iri, 'http://example.org/stuff/1.0/q')),
+    t(resource(blank(unlabeled), 1), First, resource(blank(unlabeled), 2)),
+    t(resource(blank(unlabeled), 1), Rest, resource(blank(unlabeled), 3)),
+    t(resource(blank(unlabeled), 4), First, literal(IntegerTy, "2")),
+    t(resource(blank(unlabeled), 4), Rest, Nil),
+    t(resource(blank(unlabeled), 3), First, resource(blank(unlabeled), 4)),
+    t(resource(blank(unlabeled), 3), Rest, Nil),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://example.org/stuff/1.0/p2'), resource(iri, 'http://example.org/stuff/1.0/q2'))
+  ],
+  Ts26 = [
+    t(resource(blank(labeled), '_:b0'), First, literal(IntegerTy, "1")),
+    t(resource(blank(labeled), '_:b0'), Rest, resource(blank(labeled), '_:b1')),
+    t(resource(blank(labeled), '_:b1'), First, resource(blank(labeled), '_:b2')),
+    t(resource(blank(labeled), '_:b2'), resource(iri, 'http://example.org/stuff/1.0/p'), resource(iri, 'http://example.org/stuff/1.0/q')),
+    t(resource(blank(labeled), '_:b1'), Rest, resource(blank(labeled), '_:b3')),
+    t(resource(blank(labeled), '_:b3'), First, resource(blank(labeled), '_:b4')),
+    t(resource(blank(labeled), '_:b4'), First, literal(IntegerTy, "2")),
+    t(resource(blank(labeled), '_:b4'), Rest, Nil),
+    t(resource(blank(labeled), '_:b3'), Rest, Nil)
+  ],
+  S25 = ps_b_b([""-"http://example.org/stuff/1.0/"], "", 5),
+  S26 = ps_b_b([
+    "rdf"-"http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    ""-"http://example.org/stuff/1.0/"
+  ], "", 0),
+  tag_iri(first, First),
+  tag_iri(rest, Rest),
+  tag_iri(nil, Nil),
+  tag_iri(integer, IntegerTy),
+  meta_test_parser_output(In25, Ts25, S25),
+  meta_test_parser_output(In26, Ts26, S26),
+true.
+
+test_spec_example27 :-
+  In = "\n@prefix ericFoaf: <http://www.w3.org/People/Eric/ericP-foaf.rdf#> .@prefix : <http://xmlns.com/foaf/0.1/> .ericFoaf:ericP :givenName \"Eric\" ;              :knows <http://norman.walsh.name/knows/who/dan-brickley> ,                      [ :mbox <mailto:timbl@w3.org> ] ,                      <http://getopenid.com/amyvdh> .",
+  Ts = [
+    t(resource(iri, 'http://www.w3.org/People/Eric/ericP-foaf.rdf#ericP'), resource(iri, 'http://xmlns.com/foaf/0.1/givenName'), literal(StringTy, "Eric")),
+    t(resource(iri, 'http://www.w3.org/People/Eric/ericP-foaf.rdf#ericP'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://norman.walsh.name/knows/who/dan-brickley')),
+    t(resource(blank(unlabeled), 0), resource(iri, 'http://xmlns.com/foaf/0.1/mbox'), resource(iri, 'mailto:timbl@w3.org')),
+    t(resource(iri, 'http://www.w3.org/People/Eric/ericP-foaf.rdf#ericP'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(blank(unlabeled), 0)),
+    t(resource(iri, 'http://www.w3.org/People/Eric/ericP-foaf.rdf#ericP'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://getopenid.com/amyvdh'))
+  ],
+  S = ps_b_b([
+    ""-"http://xmlns.com/foaf/0.1/",
+    "ericFoaf"-"http://www.w3.org/People/Eric/ericP-foaf.rdf#"
+  ], "", 1),
+  tag_iri(string, StringTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example28 :-
+  In = "\n@prefix dc: <http://purl.org/dc/terms/> .\n@prefix frbr: <http://purl.org/vocab/frbr/core#> .\n<http://books.example.com/works/45U8QJGZSQKDH8N> a frbr:Work ;\n     dc:creator \"Wil Wheaton\"@en ;\n     dc:title \"Just a Geek\"@en ;\n     frbr:realization <http://books.example.com/products/9780596007683.BOOK>,\n         <http://books.example.com/products/9780596802189.EBOOK> .\n<http://books.example.com/products/9780596007683.BOOK> a frbr:Expression ;\n     dc:type <http://books.example.com/product-types/BOOK> .\n<http://books.example.com/products/9780596802189.EBOOK> a frbr:Expression ;\n     dc:type <http://books.example.com/product-types/EBOOK> .",
+  Ts = [
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, Type), resource(iri, 'http://purl.org/vocab/frbr/core#Work')),
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, 'http://purl.org/dc/terms/creator'), literal(LangStrTy, @("Wil Wheaton", "en"))),
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, 'http://purl.org/dc/terms/title'), literal(LangStrTy, @("Just a Geek", "en"))),
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, 'http://purl.org/vocab/frbr/core#realization'), resource(iri, 'http://books.example.com/products/9780596007683.BOOK')),
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, 'http://purl.org/vocab/frbr/core#realization'), resource(iri, 'http://books.example.com/products/9780596802189.EBOOK')),
+    t(resource(iri, 'http://books.example.com/products/9780596007683.BOOK'), resource(iri, Type), resource(iri, 'http://purl.org/vocab/frbr/core#Expression')),
+    t(resource(iri, 'http://books.example.com/products/9780596007683.BOOK'), resource(iri, 'http://purl.org/dc/terms/type'), resource(iri, 'http://books.example.com/product-types/BOOK')),
+    t(resource(iri, 'http://books.example.com/products/9780596802189.EBOOK'), resource(iri, Type), resource(iri, 'http://purl.org/vocab/frbr/core#Expression')),
+    t(resource(iri, 'http://books.example.com/products/9780596802189.EBOOK'), resource(iri, 'http://purl.org/dc/terms/type'), resource(iri, 'http://books.example.com/product-types/EBOOK'))
+  ],
+  S = ps_b_b([
+    "frbr"-"http://purl.org/vocab/frbr/core#",
+    "dc"-"http://purl.org/dc/terms/"
+  ], "", 0),
+  tag_type(a, Type),
+  tag_iri(lang_string, LangStrTy),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+test_spec_example29 :-
+  In = "@prefix frbr: <http://purl.org/vocab/frbr/core#> .\n<http://books.example.com/works/45U8QJGZSQKDH8N> a frbr:Work .",
+  Ts = [
+    t(resource(iri, 'http://books.example.com/works/45U8QJGZSQKDH8N'), resource(iri, Type), resource(iri, 'http://purl.org/vocab/frbr/core#Work'))
+  ],
+  S = ps_b_b(["frbr"-"http://purl.org/vocab/frbr/core#"], "", 0),
+  tag_type(a, Type),
+  meta_test_parser_output(In, Ts, S),
+true.
+
+%%%%%%%%%%%%%%%  END  Parser Spec Examples %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%  END  Parser %%%%%%%%%%%%%%%
 
