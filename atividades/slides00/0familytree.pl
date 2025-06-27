@@ -39,3 +39,9 @@ asc_desc(A, D) :-
   ( X = D
   ; asc_desc(X, D)
   ).
+
+asc_desc(A, D, P) :-
+  pai_filho(A, X),
+  ( X = D, P = []
+  ; P = [X | P1], asc_desc(X, D, P1)
+  ).
