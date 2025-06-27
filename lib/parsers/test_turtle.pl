@@ -15,7 +15,7 @@
 
 :- use_module(library(debug)).
 
-:- use_module(libtest).
+:- use_module('../libtest').
 
 repeated_phrase(GRM, Ls, S0, S) :- foldl(GRM, Ls, S0, S).
 

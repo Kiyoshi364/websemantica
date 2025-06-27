@@ -16,7 +16,7 @@ if_(If_1, Then_2, Else_2) -->
   ; { throw(error(instantiation_error, _)) }
   ).
 
-:- use_module('parsers/turtle', [
+:- use_module('../parsers/turtle', [
   initial_pos//0,
   empty_state/1, parse//2
 ]).

@@ -3,7 +3,7 @@
 :- use_module(library(pio), [phrase_from_stream/2, phrase_to_stream/2]).
 :- use_module(library(iso_ext), [setup_call_cleanup/3]).
 
-:- use_module('parsers/turtle', [
+:- use_module('../parsers/turtle', [
   initial_pos//0,
   empty_state/1, parse//2
 ]).
