@@ -12,10 +12,10 @@
 :- use_module(library(dcgs), []).
 :- use_module(library(reif), [if_/3, (=)/3, (',')/3, (;)/3, memberd_t/3, tpartition/4]).
 
-:- use_module(library(debug)).
-$(G, A, B) :- $phrase(G, A, B).
-$(G, A) :- $call(G, A).
-*(_, _, _).
+% :- use_module(library(debug)).
+% $(G, A, B) :- $phrase(G, A, B).
+% $(G, A) :- $call(G, A).
+% *(_, _, _).
 
 :- use_module(reif_dcgs, [if_//3]).
 
