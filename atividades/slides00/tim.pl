@@ -15,22 +15,19 @@ rdf(iri('http://example.com/base/Jane'), iri('http://example.com/base/gender'), 
 rdf(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')).
 rdf(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John')).
 
-:- use_module(library(lists), [append/3, memberchk/2]).
+:- use_module(library(lists), [memberchk/2]).
 
 pp([
-rdf : 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-rdfs : 'http://www.w3.org/2000/01/rdf-schema#',
-xsd : 'http://www.w3.org/2001/XMLSchema#',
-foaf : 'http://xmlns.com/foaf/0.1/',
-(:) : 'http://example.com/base/',
-dbr : 'http://dbpedia.org/resource/',
-dbo : 'http://dbpedia.org/ontology/'
+rdf - 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+rdfs - 'http://www.w3.org/2000/01/rdf-schema#',
+xsd - 'http://www.w3.org/2001/XMLSchema#',
+foaf - 'http://xmlns.com/foaf/0.1/',
+(:) - 'http://example.com/base/',
+dbr - 'http://dbpedia.org/resource/',
+dbo - 'http://dbpedia.org/ontology/'
 ]).
 
 prefix(P, L, iri(X)) :-
   pp(PP),
-  memberchk(P:N, PP),
-  atom_chars(N, Ns),
-  atom_chars(L, Ls),
-  append(Ns, Ls, Xs),
-  atom_chars(X, Xs).
+  memberchk(P-N, PP),
+  atom_concat(N, L, X).
