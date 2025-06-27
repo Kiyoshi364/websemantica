@@ -44,7 +44,7 @@ node(literal(resource(T, Ty), V)) -->
   ),
   ")".
 
-resource(iri, Iri) --> format_("~a", [Iri]).
+resource(iri, Iri) --> format_("~q", [Iri]).
 resource(blank(L), N) --> blank(L, N).
 
 blank(labeled, N) --> format_("~q", [N]).
