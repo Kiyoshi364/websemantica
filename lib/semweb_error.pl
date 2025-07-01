@@ -5,7 +5,7 @@
   subject_t/2, verb_t/2, object_t/2,
   resource_t/2, resource_iri_t/2, literal_t/2,
   blank_t/3, iri_t/2,
-  string_t/2, char_t/2
+  strlang_t/2, string_t/2, char_t/2
 ]).
 
 :- use_module(library(reif), [
@@ -45,15 +45,19 @@ object_t(O, T) :- ;(resource_t(O), literal_t(O), T).
 resource_t(R, T) :-
   ','(
     R = resource(Ty, N),
-    ( Ty = iri, iri_t(N)
-    ; Ty = label(L), blank_t(L, N)
-    ),
+    matcheq_t(Ty, [
+      iri       - iri_t(N),
+      label(L)  - blank_t(L, N)
+    ]),
     T
   ).
 resource_iri_t(R, T) :- ','(R = resource(iri, N), iri_t(N), T).
-literal_t(L, T) :- ','(L = literal(Ty, Str), ( resource_iri_t(Ty), string_t(Str) ), T).
+literal_t(L, T) :- ','(L = literal(Ty, Str), ( resource_iri_t(Ty), literal_obj_t(Str) ), T).
+literal_obj_t(X, T) :- matcheq_t(X, [@(_, _)-strlang_t(X), X-string_t(X)], T).
 
-blank_t(L, N, T) :- ;(( L = labeled, iri_t(N) ), L = unlabeled, T).
+blank_t(L, N, T) :- matcheq_t(L, [labeled-iri_t(N), unlabeled- =(true)], T).
+
+strlang_t(L, T) :- ','(L = @(Str, Lang), (string_t(Str), string_t(Lang)), T).
 
 iri_t(Iri, T) :-
   ( var(Iri) -> throw(error(instantiation_error, iri_t(Iri, T)))
@@ -66,7 +70,7 @@ string_t(S, T) :-
   ; nonvar(S), functor(S, '.', 2) ->
     S = [C | S1],
     ','(char_t(C), string_t(S1), T)
-  ; ;(S = [], string_t(S), T)
+  ; ;(S = [], (S = [C | S1], char_t(C), string_t(S1)), T)
   ).
 
 char_t(C, T) :-
@@ -74,3 +78,9 @@ char_t(C, T) :-
   ; atom(C), atom_length(C, 1) -> T = true
   ; T = false
   ).
+
+matcheq_t(E, Cs, T) :- matcheq_t_(Cs, E, T).
+
+matcheq_t_([], _, false).
+matcheq_t_([X-P_1 | Cs], E, T) :-
+  if_(E = X, call(P_1, T), matcheq_t_(Cs, E, T)).
