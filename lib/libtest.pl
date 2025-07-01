@@ -5,8 +5,7 @@
   run_test/4
 ]).
 
-:- use_module(library(dcgs), [seq//1, phrase/3]).
-:- use_module(library(lists), [foldl/4]).
+:- use_module(library(lists), [append/3, foldl/4]).
 :- use_module(library(iso_ext), [call_cleanup/2]).
 
 prefix_module_predicates(Prefix, M, Ps) :-
@@ -14,7 +13,7 @@ prefix_module_predicates(Prefix, M, Ps) :-
       ( T = M:P,
         current_predicate(M:P/_),
         atom_chars(P, Name),
-        phrase(seq(Prefix), Name, _)
+        append(Prefix, _, Name)
       ),
       Ps
     )
