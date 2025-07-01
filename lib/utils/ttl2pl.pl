@@ -33,22 +33,19 @@ run_file(File) :-
   current_output(OStream),
   phrase_to_stream(foldl(triple, Ts), OStream).
 
-triple(t(S, V, O)) --> "rdf(", node(S), ", ", node(V), ", ", node(O), ").\n".
+triple(t(S, V, O)) --> "t(", node(S), ", ", node(V), ", ", node(O), ").\n".
 
-node(resource(T, X)) --> resource(T, X).
+node(resource(T, X)) --> "resource(", resource(T, X), ")".
 node(literal(resource(T, Ty), V)) -->
-  "literal(", resource(T, Ty), ", ",
+  "literal(resource(", resource(T, Ty), "), ",
   if_(V = @(S, L),
     ( "@(\"", prolog_string(S), "\", \"", prolog_string(L), "\")" ),
     ( "\"", prolog_string(V), "\"" )
   ),
   ")".
 
-resource(iri, Iri) --> format_("~q", [Iri]).
-resource(blank(L), N) --> blank(L, N).
-
-blank(labeled, N) --> format_("~q", [N]).
-blank(unlabeled, N) --> format_("_:~N", [N]).
+resource(iri, Iri) --> "iri, ", format_("~q", [Iri]).
+resource(blank(L), N) --> "blank(", format_("~q", [L]), "),", format_("~q", [N]).
 
 prolog_string([]) --> [].
 prolog_string([H | T]) --> prolog_char(H), prolog_string(T).
