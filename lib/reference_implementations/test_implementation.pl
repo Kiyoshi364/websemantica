@@ -83,8 +83,8 @@ lessthan_t(A, B, T) :-
 
 meta_test_construction(Lib, ExpList, Graph) :-
   meta_test_construction(Lib, ExpList, Graph, XExpList, XList),
-  cassert_once(ExpList == XExpList),
-  ExpList == XList.
+  cassert_once(XExpList == ExpList),
+  XList == ExpList.
 
 meta_test_construction(Lib, ExpList, Graph, XExpList, XList) :-
   tpartition_sort(ExpList, XExpList),
@@ -93,8 +93,8 @@ meta_test_construction(Lib, ExpList, Graph, XExpList, XList) :-
 
 meta_test_construction_(Lib, ExpList, Graph) :-
   meta_test_construction(Lib, ExpList, Graph, XExpList, XList),
-  $cassert_once(ExpList == XExpList),
-  $(ExpList == XList).
+  $cassert_once(XExpList == ExpList),
+  $(XList == ExpList).
 
 %%%%%%%%%%%%%%% BEGIN Construction %%%%%%%%%%%%%%%
 
@@ -146,8 +146,8 @@ true.
 
 meta_test_query_inline(Lib, ExpList, Select, Query) :-
   meta_test_query_inline(Lib, ExpList, Select, Query, XExpList, XList),
-  cassert_once(ExpList == XExpList),
-  ExpList == XList.
+  cassert_once(XExpList == ExpList),
+  XList == ExpList.
 
 meta_test_query_inline(Lib, ExpList, Select, Query, XExpList, XList) :-
   Lib = Lib,
@@ -157,8 +157,8 @@ meta_test_query_inline(Lib, ExpList, Select, Query, XExpList, XList) :-
 
 meta_test_query_inline_(Lib, ExpList, Select, Query) :-
   meta_test_query_inline(Lib, ExpList, Select, Query, XExpList, XList),
-  $cassert_once(ExpList == XExpList),
-  $(ExpList == XList).
+  $cassert_once(XExpList == ExpList),
+  $(XList == ExpList).
 
 %%%%%%%%%%%%%%% BEGIN Query Inline %%%%%%%%%%%%%%%
 
