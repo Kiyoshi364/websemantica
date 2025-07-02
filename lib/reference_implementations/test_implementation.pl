@@ -36,27 +36,27 @@ cassert_once(G) :-
   ).
 
 database([
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))),
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "32")),
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://xmlns.com/foaf/0.1/phone'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "+123456")),
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/male')),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "20")),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/male')),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hawaii')),
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Jane")),
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "23")),
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/female')),
-  t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/Tim')),
-  t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/John'))
+  t(iri('http://example.com/base/John'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+  t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/name'), literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))),
+  t(iri('http://example.com/base/John'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "32")),
+  t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/phone'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "+123456")),
+  t(iri('http://example.com/base/John'), iri('http://example.com/base/gender'), iri('http://example.com/base/male')),
+  t(iri('http://example.com/base/Tim'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+  t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/name'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")),
+  t(iri('http://example.com/base/Tim'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "20")),
+  t(iri('http://example.com/base/Tim'), iri('http://example.com/base/gender'), iri('http://example.com/base/male')),
+  t(iri('http://example.com/base/Tim'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hawaii')),
+  t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+  t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/2000/01/rdf-schema#label'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Jane")),
+  t(iri('http://example.com/base/Jane'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "23")),
+  t(iri('http://example.com/base/Jane'), iri('http://example.com/base/gender'), iri('http://example.com/base/female')),
+  t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')),
+  t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John'))
 ]).
 
 alt_database([
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hampshire')),
-  t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthDate'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#date'), "2000-07-07"))
+  t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hampshire')),
+  t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthDate'), literal(iri('http://www.w3.org/2001/XMLSchema#date'), "2000-07-07"))
 ]).
 
 triples_svos([], [], [], []).
@@ -179,11 +179,11 @@ test_query_inline_triple_empty(Lib) :-
 true.
 
 test_query_inline_svo_tim_friend_name(Lib) :-
-  Tim = resource(iri, 'http://example.com/base/Tim'),
-  FoafKnows = resource(iri, 'http://xmlns.com/foaf/0.1/knows'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
+  Tim = iri('http://example.com/base/Tim'),
+  FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   Exp = [
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -196,11 +196,11 @@ test_query_inline_svo_tim_friend_name(Lib) :-
 true.
 
 test_query_inline_triple_tim_friend_name(Lib) :-
-  Tim = resource(iri, 'http://example.com/base/Tim'),
-  FoafKnows = resource(iri, 'http://xmlns.com/foaf/0.1/knows'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
+  Tim = iri('http://example.com/base/Tim'),
+  FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   Exp = [
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -213,13 +213,13 @@ test_query_inline_triple_tim_friend_name(Lib) :-
 true.
 
 test_query_inline_svo_tim_friend_and_name(Lib) :-
-  FoafKnows = resource(iri, 'http://xmlns.com/foaf/0.1/knows'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
+  FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   Exp = [
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim"),
-    resource(iri, 'http://example.com/base/Tim')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    resource(iri, 'http://example.com/base/Tim')-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -232,13 +232,13 @@ test_query_inline_svo_tim_friend_and_name(Lib) :-
 true.
 
 test_query_inline_triple_tim_friend_and_name(Lib) :-
-  FoafKnows = resource(iri, 'http://xmlns.com/foaf/0.1/knows'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
+  FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   Exp = [
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    resource(iri, 'http://example.com/base/John')-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim"),
-    resource(iri, 'http://example.com/base/Tim')-literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    resource(iri, 'http://example.com/base/Tim')-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    iri('http://example.com/base/John')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -251,11 +251,11 @@ test_query_inline_triple_tim_friend_and_name(Lib) :-
 true.
 
 test_query_inline_svo_tim_name_optphone(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "+123456"),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")-null
+    literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "+123456"),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")-null
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -270,11 +270,11 @@ test_query_inline_svo_tim_name_optphone(Lib) :-
 true.
 
 test_query_inline_triple_tim_name_optphone(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))-literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "+123456"),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")-null
+    literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en"))-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "+123456"),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")-null
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -289,14 +289,14 @@ test_query_inline_triple_tim_name_optphone(Lib) :-
 true.
 
 test_query_inline_svo_tim_nameorlabel(Lib) :-
-  Type = resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-  FoafPerson = resource(iri, 'http://xmlns.com/foaf/0.1/Person'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  Label = resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'),
+  Type = iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+  FoafPerson = iri('http://xmlns.com/foaf/0.1/Person'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  Label = iri('http://www.w3.org/2000/01/rdf-schema#label'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Jane"),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Jane"),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -311,14 +311,14 @@ test_query_inline_svo_tim_nameorlabel(Lib) :-
 true.
 
 test_query_inline_triple_tim_nameorlabel(Lib) :-
-  Type = resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-  FoafPerson = resource(iri, 'http://xmlns.com/foaf/0.1/Person'),
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  Label = resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'),
+  Type = iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+  FoafPerson = iri('http://xmlns.com/foaf/0.1/Person'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  Label = iri('http://www.w3.org/2000/01/rdf-schema#label'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Jane"),
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Jane"),
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -333,15 +333,15 @@ test_query_inline_triple_tim_nameorlabel(Lib) :-
 true.
 
 test_query_inline_svo_tim_describe_tim(Lib) :-
-  Tim = resource(iri, 'http://example.com/base/Tim'),
+  Tim = iri('http://example.com/base/Tim'),
   Exp = [
-    t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/Tim')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hawaii')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "20")),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/male')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/John')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim"))
+    t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')),
+    t(iri('http://example.com/base/Tim'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hawaii')),
+    t(iri('http://example.com/base/Tim'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "20")),
+    t(iri('http://example.com/base/Tim'), iri('http://example.com/base/gender'), iri('http://example.com/base/male')),
+    t(iri('http://example.com/base/Tim'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+    t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John')),
+    t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/name'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"))
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -354,15 +354,15 @@ test_query_inline_svo_tim_describe_tim(Lib) :-
 true.
 
 test_query_inline_triple_tim_describe_tim(Lib) :-
-  Tim = resource(iri, 'http://example.com/base/Tim'),
+  Tim = iri('http://example.com/base/Tim'),
   Exp = [
-    t(resource(iri, 'http://example.com/base/John'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/Tim')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hawaii')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "20")),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/male')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/knows'), resource(iri, 'http://example.com/base/John')),
-    t(resource(iri, 'http://example.com/base/Tim'), resource(iri, 'http://xmlns.com/foaf/0.1/name'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim"))
+    t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')),
+    t(iri('http://example.com/base/Tim'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hawaii')),
+    t(iri('http://example.com/base/Tim'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "20")),
+    t(iri('http://example.com/base/Tim'), iri('http://example.com/base/gender'), iri('http://example.com/base/male')),
+    t(iri('http://example.com/base/Tim'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+    t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John')),
+    t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/name'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"))
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -375,10 +375,10 @@ test_query_inline_triple_tim_describe_tim(Lib) :-
 true.
 
 test_query_inline_svo_tim_name_phone_not_bound(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -394,10 +394,10 @@ test_query_inline_svo_tim_name_phone_not_bound(Lib) :-
 true.
 
 test_query_inline_triple_tim_name_phone_not_bound(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -413,10 +413,10 @@ test_query_inline_triple_tim_name_phone_not_bound(Lib) :-
 true.
 
 test_query_inline_svo_tim_name_without_phone_not_exists(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -429,10 +429,10 @@ test_query_inline_svo_tim_name_without_phone_not_exists(Lib) :-
 true.
 
 test_query_inline_triple_tim_name_without_phone_not_exists(Lib) :-
-  FoafName = resource(iri, 'http://xmlns.com/foaf/0.1/name'),
-  FoafPhone = resource(iri, 'http://xmlns.com/foaf/0.1/phone'),
+  FoafName = iri('http://xmlns.com/foaf/0.1/name'),
+  FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
-    literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -445,14 +445,14 @@ test_query_inline_triple_tim_name_without_phone_not_exists(Lib) :-
 true.
 
 test_query_inline_svo_tim_jane_describe_jane(Lib) :-
-  Jane = resource(iri, 'http://example.com/base/Jane'),
+  Jane = iri('http://example.com/base/Jane'),
   Exp = [
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthDate'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#date'), "2000-07-07")),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hampshire')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "23")),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/female')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Jane"))
+    t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthDate'), literal(iri('http://www.w3.org/2001/XMLSchema#date'), "2000-07-07")),
+    t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hampshire')),
+    t(iri('http://example.com/base/Jane'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "23")),
+    t(iri('http://example.com/base/Jane'), iri('http://example.com/base/gender'), iri('http://example.com/base/female')),
+    t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+    t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/2000/01/rdf-schema#label'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Jane"))
   ],
   database(Ts),
   alt_database(ATs),
@@ -469,14 +469,14 @@ test_query_inline_svo_tim_jane_describe_jane(Lib) :-
 true.
 
 test_query_inline_triple_tim_jane_describe_jane(Lib) :-
-  Jane = resource(iri, 'http://example.com/base/Jane'),
+  Jane = iri('http://example.com/base/Jane'),
   Exp = [
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthDate'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#date'), "2000-07-07")),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://dbpedia.org/ontology/birthPlace'), resource(iri, 'http://dbpedia.org/resource/Hampshire')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/age'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#integer'), "23")),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://example.com/base/gender'), resource(iri, 'http://example.com/base/female')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), resource(iri, 'http://xmlns.com/foaf/0.1/Person')),
-    t(resource(iri, 'http://example.com/base/Jane'), resource(iri, 'http://www.w3.org/2000/01/rdf-schema#label'), literal(resource(iri, 'http://www.w3.org/2001/XMLSchema#string'), "Jane"))
+    t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthDate'), literal(iri('http://www.w3.org/2001/XMLSchema#date'), "2000-07-07")),
+    t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthPlace'), iri('http://dbpedia.org/resource/Hampshire')),
+    t(iri('http://example.com/base/Jane'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "23")),
+    t(iri('http://example.com/base/Jane'), iri('http://example.com/base/gender'), iri('http://example.com/base/female')),
+    t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), iri('http://xmlns.com/foaf/0.1/Person')),
+    t(iri('http://example.com/base/Jane'), iri('http://www.w3.org/2000/01/rdf-schema#label'), literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Jane"))
   ],
   database(Ts),
   alt_database(ATs),

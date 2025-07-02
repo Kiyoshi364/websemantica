@@ -38,39 +38,29 @@ must_be_object(O) :-
 
 triple_t(Triple, T) :- ','(Triple = t(S, V, O), ( subject_t(S), verb_t(V), object_t(O) ), T).
 
-subject_t(S, T) :- resource_t(S, T).
-verb_t(V, T) :-  resource_iri_t(V, T).
-object_t(O, T) :- ;(resource_t(O), literal_t(O), T).
+subject_t(S, T) :- ;(iri_t(S), blank_t(S), T).
+verb_t(V, T) :-  iri_t(V, T).
+object_t(O, T) :- ;(iri_t(O), ( blank_t(O) ; literal_t(O) ), T).
 
-resource_t(R, T) :-
-  ','(
-    R = resource(Ty, N),
-    matcheq_t(Ty, [
-      iri       - iri_t(N),
-      label(L)  - blank_t(L, N)
-    ]),
-    T
-  ).
-resource_iri_t(R, T) :- ','(R = resource(iri, N), iri_t(N), T).
-literal_t(L, T) :- ','(L = literal(Ty, Str), ( resource_iri_t(Ty), literal_obj_t(Str) ), T).
-literal_obj_t(X, T) :- matcheq_t(X, [@(_, _)-strlang_t(X), X-string_t(X)], T).
+iri_t(Iri, T) :- functor_t(Iri, iri, 1, T).
 
-blank_t(L, N, T) :- matcheq_t(L, [labeled-iri_t(N), unlabeled- =(true)], T).
+blank_t(B, T) :- ','(functor_t(B, blank, 2), blank_t_(B), T).
+blank_t_(blank(L, N), T) :- matcheq_t(L, [labeled-iri_t(N), unlabeled- =(true)], T).
 
-strlang_t(L, T) :- ','(L = @(Str, Lang), (string_t(Str), string_t(Lang)), T).
+literal_t(L, T) :- ','(functor_t(L, literal, 2), literal_t_(L), T).
+literal_t_(literal(Ty, Str), T) :- ','(iri_t(Ty), literal_obj_t(Str), T).
+literal_obj_t(X, T) :- if_(functor_t(X, @, 2), strlang_t_(X, T), string_t(X, T)).
 
-iri_t(Iri, T) :-
-  ( var(Iri) -> throw(error(instantiation_error, iri_t(Iri, T)))
-  ; atom(Iri) -> T = true
-  ; T = false
-  ).
+strlang_t_(@(Str, Lang), T) :- ','(string_t(Str), string_t(Lang), T).
 
 string_t(S, T) :-
   ( S == [] -> T = true
-  ; nonvar(S), functor(S, '.', 2) ->
-    S = [C | S1],
-    ','(char_t(C), string_t(S1), T)
-  ; ;(S = [], (S = [C | S1], char_t(C), string_t(S1)), T)
+  ; if_(functor_t(S, '.', 2),
+      ( S = [C | S1],
+        ','(char_t(C), string_t(S1), T)
+      ),
+      ;(S = [], (S = [C | S1], char_t(C), string_t(S1)), T)
+    )
   ).
 
 char_t(C, T) :-
@@ -84,3 +74,15 @@ matcheq_t(E, Cs, T) :- matcheq_t_(Cs, E, T).
 matcheq_t_([], _, false).
 matcheq_t_([X-P_1 | Cs], E, T) :-
   if_(E = X, call(P_1, T), matcheq_t_(Cs, E, T)).
+
+atom_t(A, T) :-
+  ( var(A) -> throw(error(instantiation_error, atom_t(A, T)))
+  ; atom(A) -> T = true
+  ; T = false
+  ).
+
+functor_t(F, N, A, T) :-
+  ( nonvar(F) -> ( functor(F, N, A) -> T = true ; T = false )
+  ; nonvar(N), nonvar(A) -> ( functor(F, N, A) -> T = true ; T = false )
+  ; throw(error(instantiation_error, functor_t(F, N, A, T)))
+  ).

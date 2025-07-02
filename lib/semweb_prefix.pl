@@ -37,12 +37,10 @@ strip_prefix(PP, R, R0) :-
   ; strip_prefix_(R, PP, R0)
   ).
 
-strip_prefix_(resource(Type, X), PP, R0) :- strip_prefix_resource(Type, X, PP, R0).
+strip_prefix_(iri(Iri), _, iri(Iri)).
+strip_prefix_(blank(L, N), _, blank(L, N)).
 strip_prefix_(literal(Type, Str), PP, literal(Type0, Str)) :- strip_prefix(PP, Type, Type0).
-
-strip_prefix_resource(iri, X, _, resource(iri, X)).
-strip_prefix_resource(label(L), X, _, resource(label(L), X)).
-strip_prefix_resource(prefixed, P:L, PP, resource(iri, R0)) :-
+strip_prefix_(prefixed(P, L), PP, iri(R0)) :-
   get_prefixes(P, N, PP),
   atom_concat(N, L, R0).
 
@@ -51,12 +49,10 @@ unstrip_prefix(PP, R, R0) :-
   ; unstrip_prefix_(R0, R, PP)
   ).
 
-unstrip_prefix_(resource(Type, X), R, PP) :- unstrip_prefix_resource(Type, X, R, PP).
-
-unstrip_prefix_resource(iri, X, R, PP) :-
+unstrip_prefix_(iri(Iri), R, PP) :-
   % TODO
-  tmember(is_prefix(X, P), PP).
-unstrip_prefix_resource(label(L), X, R, PP) :-
+  tmember(is_prefix(Iri, P), PP).
+unstrip_prefix_(blank(L, N), R, PP) :-
   % TODO
   true.
-unstrip_prefix_resource(prefixed, X, resource(prefixed, X), _).
+unstrip_prefix_(prefixed(P, L), prefixed(P, L), _).

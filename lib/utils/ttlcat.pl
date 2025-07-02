@@ -20,16 +20,16 @@ run_file(File) :-
   current_output(OStream),
   phrase_to_stream(foldl(triple, Ts), OStream).
 
-triple(t(S, V, O)) --> node(S), " ", node(V), " ", node(O), "\n".
+triple(t(S, V, O)) --> resource(S), " ", resource(V), " ", resource(O), ".\n".
 
-node(resource(T, X)) --> resource(T, X).
-node(literal(resource(T, Type), V)) --> literal(V, T, Type).
+resource(iri(Iri)) --> iri(Iri).
+resource(blank(L, N)) --> blank(L, N).
+resource(literal(Type, V)) --> literal(V, Type).
 
-resource(iri, Iri) --> format_("<~a>", [Iri]).
-resource(blank(L), N) --> blank(L, N).
+iri(Iri) --> format_("<~a>", [Iri]).
 
-blank(labeled, N) --> format_("~q", [N]).
-blank(unlabeled, N) --> format_("_:~N", [N]).
+blank(labeled, N) --> format_("~a", [N]).
+blank(unlabeled, N) --> format_("_:~q", [N]).
 
-literal(@(Str, Lang), _, _) --> format_("\"~s\"@~s", [Str, Lang]).
-literal([S|Tr], T, Type) --> format_("\"~s\"^^", [[S|Tr]]), resource(T, Type).
+literal(@(Str, Lang), _) --> format_("\"~s\"@~s", [Str, Lang]).
+literal([S|Tr], Type) --> format_("\"~s\"^^", [[S|Tr]]), resource(Type).

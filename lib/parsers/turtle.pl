@@ -597,10 +597,10 @@ keyeq_t(K, K1-_, T) :- =(K, K1, T).
 cons_prefix_state(N, P, ps_b_b(Ns0, B, G), ps_b_b([N-P | Ns1], B, G)) :-
   tpartition(keyeq_t(N), Ns0, _, Ns1).
 
-iri_atom(resource(iri, A), A).
+iri_atom(iri(A), A).
 iri_chars(Iri, Str) :- atom_chars(A, Str), iri_atom(Iri, A).
 
-blanklabel_atom(resource(blank(labeled), A), A).
+blanklabel_atom(blank(labeled, A), A).
 blanklabel_chars(BL, Str) :- atom_chars(A, Str), blanklabel_atom(BL, A).
 
 add_triple(S, V, O, [t(S, V, O) | Ts], Ts).
@@ -615,7 +615,7 @@ append_prefix(ps_b_b(Ns, _, _), N, R, X) :-
     ( append(P, R, Xs), iri_chars(X, Xs) ),
     throw(error(prefix_not_defined(N)))
   ).
-gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), resource(blank(unlabeled), G0)) :-
+gen_blanknode(ps_b_b(Ns, B, G0), ps_b_b(Ns, B, G), blank(unlabeled, G0)) :-
   G is G0 + 1.
 
 parse(Ts, S) --> { empty_state(S0) }, initial_pos, turtledoc(Ts, [], S0, S).
