@@ -34,3 +34,5 @@
   owl:sameAs dbr:Louvre ;
   dbo:location dbr:France
 .
+
+[] foaf:knows _:a .
