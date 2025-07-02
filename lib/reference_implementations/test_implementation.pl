@@ -116,7 +116,6 @@ test_construction_is_graph_empty(Lib) :-
   Lib:is_graph(G),
 true.
 
-nwdet(test_construction_is_graph_database).
 test_construction_is_graph_database(Lib) :-
   database(Ts),
   Lib:list_to_graph(Ts, G),

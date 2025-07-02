@@ -3,9 +3,10 @@
   must_be_subject/1, must_be_verb/1, must_be_object/1,
   triple_t/2,
   subject_t/2, verb_t/2, object_t/2,
-  resource_t/2, resource_iri_t/2, literal_t/2,
-  blank_t/3, iri_t/2,
-  strlang_t/2, string_t/2, char_t/2
+  iri_t/2, blank_t/2, literal_t/2,
+  literal_obj_t/2,
+  strlang_t/2, string_t/2, char_t/2,
+  functor_t/4
 ]).
 
 :- use_module(library(reif), [
@@ -36,7 +37,8 @@ must_be_object(O) :-
   ; throw(error(type_error(object, O), must_be_object/1))
   ).
 
-triple_t(Triple, T) :- ','(Triple = t(S, V, O), ( subject_t(S), verb_t(V), object_t(O) ), T).
+triple_t(Triple, T) :- ','(functor_t(Triple, t, 3), triple_t_(Triple), T).
+triple_t_(t(S, V, O), T) :- ','(subject_t(S), ( verb_t(V), object_t(O) ), T).
 
 subject_t(S, T) :- ;(iri_t(S), blank_t(S), T).
 verb_t(V, T) :-  iri_t(V, T).
@@ -51,6 +53,7 @@ literal_t(L, T) :- ','(functor_t(L, literal, 2), literal_t_(L), T).
 literal_t_(literal(Ty, Str), T) :- ','(iri_t(Ty), literal_obj_t(Str), T).
 literal_obj_t(X, T) :- if_(functor_t(X, @, 2), strlang_t_(X, T), string_t(X, T)).
 
+strlang_t(SL, T) :- ','(functor_t(SL, @, 2), strlang_t_(SL), T).
 strlang_t_(@(Str, Lang), T) :- ','(string_t(Str), string_t(Lang), T).
 
 string_t(S, T) :-
