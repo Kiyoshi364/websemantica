@@ -439,6 +439,34 @@ asked in @repl:familytree.
 
 = The Prolog Interface
 
+The prolog interface we propose
+is inspired by Cliopatria's interface~#cite(<cliopatria>).
+However,
+ours put further emphasis on the following:
+knowledge graph construction;
+and
+explicit graphs in queries;
+and
+meta information about the RDF structure.
+The ability to construct knowledge graphs
+enables prolog programs
+to derive new knowledge.
+A use case for that
+is to
+enhance some graph
+with new triples
+infered from ontology descriptions.
+
+Designing the query interface
+with explicit graphs,
+opens the possibility to
+make multi-graph queries.
+
+And finally,
+our resource representation
+includes some
+meta information about the RDF structure.
+
 = The Reference Implementation
 
 == Tests
