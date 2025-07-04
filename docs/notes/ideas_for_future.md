@@ -13,3 +13,9 @@ Allows:
 * Optmizations
 * Compilation to/from SPARQL
   * Federated Queries
+
+# Prefixes Integration
+
+```
+prefixed(Prefix, Name)
+```

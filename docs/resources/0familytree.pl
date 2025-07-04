@@ -20,4 +20,4 @@ asc_desc(A, D) :-
 
 asc_desc(A, D, P) :-
   parent_child(A, X),
-  ( X = D, P = [] ; P = [X | P1], asc_desc(X, D, P1) ).
+  ( P = [], X = D ; P = [X | P1], asc_desc(X, D, P1) ).
