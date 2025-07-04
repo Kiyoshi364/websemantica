@@ -1,4 +1,6 @@
 #import "fine-lncs/lib.typ": lncs, institute, author;
+#import "appendix.typ": appendix;
+#import "defs.typ": *;
 
 #let inst_ic = institute(
   "Instituto de Computação",
@@ -57,27 +59,12 @@
   ),
   abstract: abstract,
   keywords: keywords,
-  bibliography: bibliography("refs.bib")
+  bibliography: bibliography("refs.bib"),
+  appendix: appendix,
 );
-
-#let links = (
-  turtle: link("https://www.w3.org/TR/2014/REC-turtle-20140225/"),
-  rdf-primer: link("https://www.w3.org/TR/2014/NOTE-rdf11-primer-20140624/"),
-  rdf-concepts: link("https://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/"),
-  rdfs: link("https://www.w3.org/TR/2014/REC-rdf-schema-20140225/"),
-  sparql11: link("https://www.w3.org/TR/2013/REC-sparql11-query-20130321/"),
-);
-
-#let resource(name) = "resources/" + name;
 
 #set document(keywords: keywords);
-#set raw(syntaxes: (
-  resource("ISO-Prolog.sublime-syntax"),
-  resource("ttl.sublime-syntax"),
-));
-
-#let codefig = figure.with(kind: "code", supplement: [Program]);
-#let repl = figure.with(kind: "repl", supplement: [Interaction]);
+#set raw(syntaxes: syntaxes);
 
 = Introduction
 
@@ -102,7 +89,7 @@ to RDF and SPARQL queries.
 
 Prolog programming
 consists of describing what is true
-by stating truth facts and
+by asserting truth facts and
 rules for deriving new truths
 (the program),
 and then
@@ -119,12 +106,6 @@ is a fact
 and
 ```pl asc_desc(A, D) :- parent_child(A, X), ( X = D ; asc_desc(X, D) ).```
 is a rule.
-
-#codefig(
-  caption: [Family Tree in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("0familytree.pl")));
-}] <prog:familytree-pl>
 
 @prog:familytree-pl describes 3 predicates with facts
 (```pl parent_child/2```,
@@ -165,12 +146,6 @@ the arrows points from the parent to the child,
 males are drawn in a box,
 and
 females are drawn in an oval.
-
-#figure(
-  caption: [Family Tree Representation],
-)[#{
-  image(resource("familytree.dot.svg"))
-}] <fig:familytree>
 
 Before looking at the rules of @prog:familytree-pl
 we will take a look at queries
@@ -274,40 +249,7 @@ meaning
 (and who are the intermediary descendants)?"
 in @repl:familytree.
 
-#repl(
-  caption: [Some Queries and Answers from @prog:familytree-pl to Scryer Prolog],
-)[```pl
-% is Helena male?
-?- male(helena).
-   false.
-
-% which Xs are male?
-?- male(X).
-   X = sergio           ;  X = milton           ;  X = george
-;  X = mario            ;  X = alexandre        ;  X = andre.
-?- parent_child(carmem, ema), female(ema).
-   true.
-
-% is Carmem parent of Ema and Ema female?
-?- parent_child(carmem, X), female(X).
-   X = sara             ;  X = ema.
-
-% which Xs are the daughters of Carmem?
-?- asc_desc(lara, X).
-   X = milton                       ;  X = george
-;  X = ana                          ;  X = andre
-;  X = carmem                       ;  X = sara
-;  X = ema                          ;  false.
-
-% which Xs are descendant of Lara?
-?- asc_desc(lara, X, P).
-   X = milton, P = []               ;  X = george, P = [milton]
-;  X = ana,    P = [milton,george]  ;  X = andre,  P = [milton,george]
-;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
-;  X = ema,    P = [milton,carmem]  ;  false.
-```] <repl:familytree>
-
-== From Prolog to RDF and SPARQL Query Language
+== From Prolog to RDF and SPARQL Query Language <sec:prolog-to-semweb>
 
 A RDF database describes
 a directed graph
@@ -319,14 +261,14 @@ predicate (edge-label),
 and object (node).
 As their names suggest,
 each triple
-describes a truth:
+asserts a truth:
 the predicate holds for
 the subject and the object.
 
 In @prog:familytree-ttl,
 we show a RDF database
 (serialized in turtle#footnote(links.turtle);)
-which describes
+which asserts
 the same information
 in @prog:familytree-pl.
 We translate prolog binary predicates,
@@ -371,19 +313,13 @@ linking an individual to its class.
 (In RDFS#footnote(links.rdfs);,
 this special predicate is called ```ttl rdf:type```.)
 
-#codefig(
-  caption: [Family Tree in Turtle],
-)[#{
-  raw(lang: "ttl", read(resource("1familytree.ttl")));
-}] <prog:familytree-ttl>
-
 In this translation
 from Prolog to RDF,
 it becomes clear that
 the RDF framework
 is reifying the predicates.
 In another words,
-we can make statements
+we can make assertions and queries
 about predicates in this framework.
 In @prog:familytree-ttl,
 the predicates
@@ -413,37 +349,93 @@ However, it is not possible to
 retrieve the path from Lara to the descendant
 without extensions to SPARQL~1.1.
 See the translated SPARQL queries
-in @prog:sparql-familytree.
+in @prog:familytree-sparql.
 
-#codefig(
-  caption: [Some SPARQL Queries from @prog:familytree-ttl]
-)[#{
-  let gutter = 0.5em;
-  let sep = { v(gutter); line(length: 75%, stroke: 0.25pt + color.gray); v(gutter); };
-  let queries = (
-    ```sparql
-# is Helena male?
-ASK { :helena :isA :male . }
-    ```, ```sparql
-# which Xs are male?
-SELECT ?x WHERE { ?x :isA :male . }
-    ```, ```sparql
-# is Carmem parent of Ema and Ema female?
-ASK { :carmem :parent_child :ema . :ema :isA :female . }
-    ```, ```sparql
-# which Xs are the daughters of Carmem?
-SELECT ?x { :carmem :parent_child ?x . ?x :isA :female . }
-    ```, ```sparql
-# which Xs are descendant of Lara?
-SELECT ?x { :lara :parent_child+ ?x . }
-    ```,
-  );
-  stack(dir: ttb,
-    ..queries.intersperse(sep)
-  )
-}] <prog:sparql-familytree>
+Notice that
+we do not explicitly show
+the predicate ```pl asc_desc/2```,
+defined in @prog:familytree-pl,
+in the RDF database (@prog:familytree-ttl),
+neither in SPARQL queries (@prog:familytree-sparql).
+This happens because ```pl asc_desc/2```
+is in essence some sort of subquery to the database
+and SPARQL does not provide a way to name subqueries.
+Inspite of that,
+we are still able to ask
+"which Xs are descendant of Lara?"
+in SPARQL,
+by instantiating some variables
+in a more general query:
+"which Xs are descendant of which Ys".
 
 == From RDF and SPARQL Query Language back to Prolog <sec:semweb-to-prolog>
+
+As we saw in @sec:prolog-to-semweb,
+RDF reifies the predicates
+to fit in their triple model.
+This reification
+adds some expressive power
+to the description language.
+With reified predicates,
+we can give descriptions
+to them,
+for instance,
+assert their domain and range.
+Prolog programs
+can achieve
+this extra expressive power
+without language extensions.
+However,
+it is not a usual requirement
+for most programs
+and this practice is avoided
+because it incurs
+some performance penalties
+(since the predicate is no longer
+#emph[hardcoded] nor #emph[indexed]).
+
+To reify predicates in Prolog,
+we create a new predicate
+```pl rdf(Sub, Pred, Obj)```
+to hold the triples.
+For the binary predicates,
+```pl Sub``` and ```pl Obj```
+are the old arguments
+and
+```pl Pred```
+is the predicate name.
+And for the unary predicates,
+we use the same trick
+we did
+in @sec:prolog-to-semweb,
+to turn them into binary predicates.
+For example,
+we show the reification of
+@prog:familytree-pl
+in @prog:reif-familytree-pl.
+
+The predicates
+```pl asc_desc/2``` and ```pl asc_desc/3```
+are the transitive closures
+of the predicate ```pl parent_child/2```.
+They appear generalized
+in @prog:reif-familytree-pl,
+respectively,
+```pl plus(Sub, Pred, Obj)```
+and
+```pl plus(Sub, Pred, Obj, P)```.
+The new predicates
+define the transitive closure
+of ```pl Pred```.
+We name them ```pl plus```,
+because
+the ```sparql +```
+in a SPARQL property path
+denotes the transitive closure.
+
+In @prog:reif-familytree-queries,
+we list the translated queries
+asked in @repl:familytree.
 
 = The Prolog Interface
 
