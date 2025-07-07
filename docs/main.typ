@@ -63,7 +63,10 @@
   appendix: appendix,
 );
 
-#set document(keywords: keywords);
+#set document(
+  keywords: keywords,
+  date: datetime(year: 2025, month: 07, day: 18),
+);
 #set raw(syntaxes: syntaxes);
 
 = Introduction
@@ -458,8 +461,13 @@ the results of a query into a prolog list;
 these predicates are
 ```pl findall/3```, ```pl bagof/3```, and ```pl setof/3```.
 We can use these predicates
-to implement some advanced SPARQL features,
-such as ```sparql MINUS```, aggregation primitives and subqueries.
+to implement other SPARQL features,
+such as
+```sparql DESCRIBE``` query form,
+```sparql MINUS```,
+aggregation primitives
+and
+subqueries.
 
 = The Prolog Interface
 
@@ -644,7 +652,7 @@ in @table:interface-graph-construction.
         ),
       ),
     ),
-    "list_to_graph/1": (
+    "list_to_graph/2": (
       description: "is true iff `G` is a graph containing exactly the triples in the list `L`.",
       modes: (
         (
@@ -653,7 +661,7 @@ in @table:interface-graph-construction.
         ),
       ),
     ),
-    "graph_to_list/1": (
+    "graph_to_list/2": (
       description: "is true iff `L` is a list of triples representing the graph `G`.",
       modes: (
         (
@@ -762,6 +770,19 @@ and
 ```pl nondet```
 succeeds 0 or more times.
 
+We remark that this interface is not minimal.
+For instance,
+one could implement ```pl list_to_graph/2```
+by using ```pl foldl/4```
+with ```pl put_triple_graph/3```,
+the input list,
+an empty graph (from ```pl empty_graph/1```)
+and
+the output graph
+(this is how we implement
+```pl list_to_graph/2```
+in the reference implementation).
+
 == Graph Querying <sec:interface-graph-query>
 
 The querying interface is very simple,
@@ -815,10 +836,60 @@ but it works with triples.
   table_interface(interface);
 }] <table:interface-graph-query>
 
-= The Reference Implementation
+= The Accompanying Implementation
 
-== Tests
+Alongside with the interface description,
+we provide
+a reference implementation
+using unordered lists of triples,
+a non-production-ready turtle parser implementation,
+and
+some tests cases for both.
+The reference implementation resides
+in the file `semweb_unord_lists.pl`.
+We implemented the reference library
+using some list builtins
+and predicates from `library(reif)`~#cite(<indexingdif>).
+The implementation is straight forward,
+because of this,
+we will not talk about it any further.
+
 == Turtle Parser
+
+The turtle parser
+was implemented with Definite Clause Grammars (DCGs)
+and it resides
+in the file `turtle.pl`.
+We do not consider
+the implementation to be production-ready
+for some reasons.
+The first reason is that
+it throws debuging errors
+on syntax errors and on backtracking.
+Secondly,
+it does not detects a relative IRI
+for substituting the base;
+instead,
+it always assumes that the IRI is relative
+and prepends the base.
+For instance,
+if the base is set to `http://example.org/base/`,
+and we read the IRIs
+`thing`
+and
+`http://example.org/thing`,
+the parser will incorrectly produce
+`http://example.org/base/thing`
+and
+`http://example.org/base/http://example.org/thing`.
+And finally,
+it does not do any IRI normalization.
+For instance,
+`http://example.org/base#fragment`
+and
+`http://example.org/base/#fragment`
+are treated as different IRIs
+(but they are the same).
 
 = Conclusion
 
