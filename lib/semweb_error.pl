@@ -1,8 +1,8 @@
 :- module(semweb_error, [
   must_be_triple/1,
-  must_be_subject/1, must_be_verb/1, must_be_object/1,
+  must_be_subject/1, must_be_predicate/1, must_be_object/1,
   triple_t/2,
-  subject_t/2, verb_t/2, object_t/2,
+  subject_t/2, predicate_t/2, object_t/2,
   iri_t/2, blank_t/2, literal_t/2,
   literal_obj_t/2,
   strlang_t/2, string_t/2, char_t/2,
@@ -25,10 +25,10 @@ must_be_subject(S) :-
   ; throw(error(type_error(subject, S), must_be_subject/1))
   ).
 
-must_be_verb(V) :-
-  ( var(V) -> throw(error(instantiation_error, must_be_verb(V)))
-  ; verb_t(V, true) -> true
-  ; throw(error(type_error(verb, V), must_be_verb/1))
+must_be_predicate(P) :-
+  ( var(P) -> throw(error(instantiation_error, must_be_predicate(P)))
+  ; predicate_t(P, true) -> true
+  ; throw(error(type_error(predicate, P), must_be_predicate/1))
   ).
 
 must_be_object(O) :-
@@ -38,10 +38,10 @@ must_be_object(O) :-
   ).
 
 triple_t(Triple, T) :- ','(functor_t(Triple, t, 3), triple_t_(Triple), T).
-triple_t_(t(S, V, O), T) :- ','(subject_t(S), ( verb_t(V), object_t(O) ), T).
+triple_t_(t(S, P, O), T) :- ','(subject_t(S), ( predicate_t(P), object_t(O) ), T).
 
 subject_t(S, T) :- ;(iri_t(S), blank_t(S), T).
-verb_t(V, T) :-  iri_t(V, T).
+predicate_t(P, T) :-  iri_t(P, T).
 object_t(O, T) :- ;(iri_t(O), ( blank_t(O) ; literal_t(O) ), T).
 
 iri_t(Iri, T) :- functor_t(Iri, iri, 1, T).

@@ -17,8 +17,8 @@ foldl(G_5, [X | Xs], [Y | Ys], [Z | Zs], A0, A) :-
 load_semweb_module(M) :- use_module(M, [
   empty_graph/1, is_graph/1,
   list_to_graph/2, graph_to_list/2,
-  put_svo_graph/5, put_triple_graph/3,
-  graph_svo/4, graph_triple/2,
+  put_spo_graph/5, put_triple_graph/3,
+  graph_spo/4, graph_triple/2,
   query_graph/2, graph_findall/4
 ]).
 
@@ -59,8 +59,8 @@ alt_database([
   t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthDate'), literal(iri('http://www.w3.org/2001/XMLSchema#date'), "2000-07-07"))
 ]).
 
-triples_svos([], [], [], []).
-triples_svos([t(S, V, O) | Ts], [S | Ss], [V | Vs], [O | Os]) :- triples_svos(Ts, Ss, Vs, Os).
+triples_spos([], [], [], []).
+triples_spos([t(S, P, O) | Ts], [S | Ss], [P | Ps], [O | Os]) :- triples_spos(Ts, Ss, Ps, Os).
 
 tpartition_sort(Ts, Sorteds) :- tpartition_sort_(Ts, Sorteds, []).
 
@@ -122,12 +122,12 @@ test_construction_is_graph_database(Lib) :-
   Lib:is_graph(G),
 true.
 
-test_construction_put_svo_graph(Lib) :-
+test_construction_put_spo_graph(Lib) :-
   database(Ts),
   tpartition_sort(Ts, Exp),
-  triples_svos(Ts, Ss, Vs, Os),
+  triples_spos(Ts, Ss, Ps, Os),
   Lib:empty_graph(G0),
-  foldl(Lib:put_svo_graph, Ss, Vs, Os, G0, G),
+  foldl(Lib:put_spo_graph, Ss, Ps, Os, G0, G),
   meta_test_construction(Lib, Exp, G),
 true.
 
@@ -138,6 +138,10 @@ test_construction_put_triple_graph(Lib) :-
   foldl(Lib:put_triple_graph, Ts, G0, G),
   meta_test_construction(Lib, Exp, G),
 true.
+
+%%%%%%%%%%%%%%% BEGIN Construction Properties %%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%  END  Construction Properties %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%  END  Construction %%%%%%%%%%%%%%%
 
@@ -161,11 +165,11 @@ meta_test_query_inline_(Lib, ExpList, Select, Query) :-
 
 %%%%%%%%%%%%%%% BEGIN Query Inline %%%%%%%%%%%%%%%
 
-test_query_inline_svo_empty(Lib) :-
+test_query_inline_spo_empty(Lib) :-
   Exp = [],
   Lib:empty_graph(G),
   Select = Select,
-  Query = Lib:graph_svo(G, _, _, _),
+  Query = Lib:graph_spo(G, _, _, _),
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
@@ -177,7 +181,7 @@ test_query_inline_triple_empty(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_friend_name(Lib) :-
+test_query_inline_spo_tim_friend_name(Lib) :-
   Tim = iri('http://example.com/base/Tim'),
   FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
@@ -188,8 +192,8 @@ test_query_inline_svo_tim_friend_name(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Friend-Name,
   Query = (
-    Lib:graph_svo(G, Tim, FoafKnows, Friend),
-    Lib:graph_svo(G, Friend, FoafName, Name)
+    Lib:graph_spo(G, Tim, FoafKnows, Friend),
+    Lib:graph_spo(G, Friend, FoafName, Name)
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
@@ -211,7 +215,7 @@ test_query_inline_triple_tim_friend_name(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_friend_and_name(Lib) :-
+test_query_inline_spo_tim_friend_and_name(Lib) :-
   FoafKnows = iri('http://xmlns.com/foaf/0.1/knows'),
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   Exp = [
@@ -224,8 +228,8 @@ test_query_inline_svo_tim_friend_and_name(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Person-FName,
   Query = (
-    Lib:graph_svo(G, Person, FoafKnows, _),
-    Lib:graph_svo(G, _, FoafName, FName)
+    Lib:graph_spo(G, Person, FoafKnows, _),
+    Lib:graph_spo(G, _, FoafName, FName)
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
@@ -249,7 +253,7 @@ test_query_inline_triple_tim_friend_and_name(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_name_optphone(Lib) :-
+test_query_inline_spo_tim_name_optphone(Lib) :-
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
@@ -260,9 +264,9 @@ test_query_inline_svo_tim_name_optphone(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Name-Phone,
   Query = (
-    Lib:graph_svo(G, Person, FoafName, Name),
-    ( \+ Lib:graph_svo(G, Person, FoafPhone, Phone) -> Phone = null
-    ; Lib:graph_svo(G, Person, FoafPhone, Phone)
+    Lib:graph_spo(G, Person, FoafName, Name),
+    ( \+ Lib:graph_spo(G, Person, FoafPhone, Phone) -> Phone = null
+    ; Lib:graph_spo(G, Person, FoafPhone, Phone)
     )
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
@@ -287,7 +291,7 @@ test_query_inline_triple_tim_name_optphone(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_nameorlabel(Lib) :-
+test_query_inline_spo_tim_nameorlabel(Lib) :-
   Type = iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
   FoafPerson = iri('http://xmlns.com/foaf/0.1/Person'),
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
@@ -301,9 +305,9 @@ test_query_inline_svo_tim_nameorlabel(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Name,
   Query = (
-    Lib:graph_svo(G, Person, Type, FoafPerson),
-    ( Lib:graph_svo(G, Person, FoafName, Name)
-    ; Lib:graph_svo(G, Person, Label, Name)
+    Lib:graph_spo(G, Person, Type, FoafPerson),
+    ( Lib:graph_spo(G, Person, FoafName, Name)
+    ; Lib:graph_spo(G, Person, Label, Name)
     )
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
@@ -331,7 +335,7 @@ test_query_inline_triple_tim_nameorlabel(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_describe_tim(Lib) :-
+test_query_inline_spo_tim_describe_tim(Lib) :-
   Tim = iri('http://example.com/base/Tim'),
   Exp = [
     t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')),
@@ -344,9 +348,9 @@ test_query_inline_svo_tim_describe_tim(Lib) :-
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
-  Select = t(S, V, O),
+  Select = t(S, P, O),
   Query = (
-    Lib:graph_svo(G, S, V, O),
+    Lib:graph_spo(G, S, P, O),
     ( S = Tim ; O = Tim )
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
@@ -365,15 +369,15 @@ test_query_inline_triple_tim_describe_tim(Lib) :-
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
-  Select = t(S, V, O),
+  Select = t(S, P, O),
   Query = (
-    Lib:graph_triple(G, t(S, V, O)),
+    Lib:graph_triple(G, t(S, P, O)),
     ( S = Tim ; O = Tim )
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_name_phone_not_bound(Lib) :-
+test_query_inline_spo_tim_name_phone_not_bound(Lib) :-
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
@@ -383,9 +387,9 @@ test_query_inline_svo_tim_name_phone_not_bound(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Name,
   Query = (
-    Lib:graph_svo(G, Person, FoafName, Name),
-    ( \+ Lib:graph_svo(G, Person, FoafPhone, Phone) -> Phone = null
-    ; Lib:graph_svo(G, Person, FoafPhone, Phone)
+    Lib:graph_spo(G, Person, FoafName, Name),
+    ( \+ Lib:graph_spo(G, Person, FoafPhone, Phone) -> Phone = null
+    ; Lib:graph_spo(G, Person, FoafPhone, Phone)
     ),
     Phone = null
   ),
@@ -411,7 +415,7 @@ test_query_inline_triple_tim_name_phone_not_bound(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_name_without_phone_not_exists(Lib) :-
+test_query_inline_spo_tim_name_without_phone_not_exists(Lib) :-
   FoafName = iri('http://xmlns.com/foaf/0.1/name'),
   FoafPhone = iri('http://xmlns.com/foaf/0.1/phone'),
   Exp = [
@@ -421,8 +425,8 @@ test_query_inline_svo_tim_name_without_phone_not_exists(Lib) :-
   Lib:list_to_graph(Ts, G),
   Select = Name,
   Query = (
-    Lib:graph_svo(G, Person, FoafName, Name),
-    \+ Lib:graph_svo(G, Person, FoafPhone, _)
+    Lib:graph_spo(G, Person, FoafName, Name),
+    \+ Lib:graph_spo(G, Person, FoafPhone, _)
   ),
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
@@ -443,7 +447,7 @@ test_query_inline_triple_tim_name_without_phone_not_exists(Lib) :-
   meta_test_query_inline(Lib, Exp, Select, Query),
 true.
 
-test_query_inline_svo_tim_jane_describe_jane(Lib) :-
+test_query_inline_spo_tim_jane_describe_jane(Lib) :-
   Jane = iri('http://example.com/base/Jane'),
   Exp = [
     t(iri('http://example.com/base/Jane'), iri('http://dbpedia.org/ontology/birthDate'), literal(iri('http://www.w3.org/2001/XMLSchema#date'), "2000-07-07")),
@@ -457,10 +461,10 @@ test_query_inline_svo_tim_jane_describe_jane(Lib) :-
   alt_database(ATs),
   Lib:list_to_graph(Ts, G),
   Lib:list_to_graph(ATs, AG),
-  Select = t(S, V, O),
+  Select = t(S, P, O),
   Query = (
-    ( Lib:graph_svo(G, S, V, O)
-    ; Lib:graph_svo(AG, S, V, O)
+    ( Lib:graph_spo(G, S, P, O)
+    ; Lib:graph_spo(AG, S, P, O)
     ),
     ( S = Jane ; O = Jane )
   ),
@@ -481,10 +485,10 @@ test_query_inline_triple_tim_jane_describe_jane(Lib) :-
   alt_database(ATs),
   Lib:list_to_graph(Ts, G),
   Lib:list_to_graph(ATs, AG),
-  Select = t(S, V, O),
+  Select = t(S, P, O),
   Query = (
-    ( Lib:graph_triple(G, t(S, V, O))
-    ; Lib:graph_triple(AG, t(S, V, O))
+    ( Lib:graph_triple(G, t(S, P, O))
+    ; Lib:graph_triple(AG, t(S, P, O))
     ),
     ( S = Jane ; O = Jane )
   ),
