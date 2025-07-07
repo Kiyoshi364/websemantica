@@ -15,3 +15,34 @@
 
 #let codefig = figure.with(kind: "code", supplement: [Program]);
 #let repl = figure.with(kind: "repl", supplement: [Interaction]);
+
+#let format_interface_entry(lang: "pl", entry) = {
+  let predicate = entry.at(0);
+  let description = entry.at(1).description;
+  let modes = entry.at(1).modes;
+  (
+    table.hline(),
+    table.cell(
+      rowspan: modes.len(),
+      align: center,
+      raw(lang: lang, predicate),
+    ),
+    table.cell(
+      rowspan: modes.len(),
+      description,
+    ),
+    ..modes.map(m => raw(lang: lang, m.mode + " is " + m.is + "."))
+      .intersperse(table.hline(stroke: luma(75%))),
+    table.hline(),
+  )
+};
+#let table_interface(interface) = table(
+  columns: 3,
+  inset: 5pt,
+  align: horizon,
+  table.header(
+    table.hline(),
+    [Predicate], [Description], [Modes],
+  ),
+  ..interface.pairs().map(format_interface_entry).flatten(),
+);

@@ -468,28 +468,352 @@ is inspired by Cliopatria's interface~#cite(<cliopatria>).
 However,
 ours put further emphasis on the following:
 knowledge graph construction;
-and
-explicit graphs in queries;
+queries with explicit graphs;
 and
 meta information about the RDF structure.
+
 The ability to construct knowledge graphs
 enables prolog programs
 to derive new knowledge.
-A use case for that
-is to
-enhance some graph
+For instance,
+one could
+enhance some existing graph
 with new triples
-infered from ontology descriptions.
-
+infered from an ontology description.
 Designing the query interface
-with explicit graphs,
+to allow specifying
+the search graph,
 opens the possibility to
 make multi-graph queries.
-
 And finally,
-our resource representation
-includes some
-meta information about the RDF structure.
+by adding some
+meta information about the RDF structure;
+for example,
+if a node is an IRI or a blank node;
+we can take advantage of Prolog's syntax
+for pattern matching
+(and indexing),
+instead of
+converting back and forward
+from atoms to strings.
+
+We will describe the interface proposal in three parts:
+resource and statement representation (@sec:interface-resource),
+graph construction (@sec:interface-graph-construction),
+and
+graph querying (@sec:interface-graph-query).
+
+== Resource and Statement Representation <sec:interface-resource>
+
+A resource in a RDF graph is either a IRI, a blank node or a literal.
+Thus, we represent a resource with one of the following functors:
+```pl iri(Iri)```,
+```pl blank(Labeled, Name)```, or
+```pl literal(Type, Repr)```.
+
+For the IRI case
+```pl iri(Iri)```,
+the inner value ```pl Iri```
+must be an atom
+which represents an IRI.
+For instance,
+```pl iri('http://example.org/alice')```,
+and
+```pl iri('mailto:alice@example.org')```.
+```pl Iri``` should be compatible with
+Cleopatria's representation of an IRI.
+
+For the blank node case
+```pl blank(Labeled, Name)```,
+the first inner value ```pl Labeled```
+is either
+```pl labeled``` or ```pl unlabeled```.
+If ```pl Labeled = labeled```,
+then the second inner value ```pl Name```
+is an atom starting with `_:`,
+for instance,
+```pl '_:a'```, ```pl '_:foo'```, and ```pl '_:123'```.
+Otherwise ```pl Labeled = unlabeled```,
+and the second inner value ```pl Name```
+is any ground Prolog term.
+
+Originally,
+RDF does not make
+this distinction on blank nodes.
+However,
+our intent is to use
+```pl labeled``` blank nodes
+when a blank node is read from a database
+(where the labels usually are already provided),
+and use the ```pl unlabeled``` blank nodes
+when a prolog program needs to generate those labels.
+This approach not only allows a prolog program
+to defer
+the task of generating names
+which will not conflict with existing ones,
+but also allows to
+embed arbitrary information into
+the blank node.
+
+Finally, for the literal case
+```pl literal(Type, Repr)```,
+the first inner value ```pl Type```
+is an IRI resource,
+i.e. ```pl Type = iri(Iri)```,
+where ```pl Iri```
+represents the type of the literal.
+If ```pl Type``` represents a language-tagged string,
+i.e. ```pl Iri = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'```,
+then ```pl Repr = @(Str, Lang)```,
+where ```pl Str``` is a prolog string
+with the language tag ```pl Lang```
+which is also a prolog string.
+Otherwise
+the literal is not a language-tagged string,
+and the second inner value ```pl Repr```
+is a prolog string
+which is a string representation of the literal.
+
+The RDF framework considers
+literals with the same type,
+but different underlying string representations,
+to be different nodes.
+For instance,
+using
+```pl IntegerType = 'http://www.w3.org/2001/XMLSchema#integer'```,
+the literals
+```pl literal(IntegerType, "1")```
+and
+```pl literal(IntegerType, "01")```
+are considered different,
+despite both having the same value.
+Therefore,
+it is important to capture
+this behavior in our prolog representation of literals.
+
+In RDF,
+a statement is
+a triple of resources;
+respectively,
+subject, predicate, and object;
+where
+the subject is either an IRI or a blank node,
+the predicate is an IRI, and
+the predicate is either an IRI, a blank node, or a literal.
+We represent a triple in prolog
+with the functor
+```pl t(Sub, Pred, Obj)```
+where
+```pl Sub```, ```pl Pred```, and ```pl Obj```
+are, respectively,
+the subject, the predicate, and the object
+of the triple.
+
+== Graph Construction <sec:interface-graph-construction>
+
+A RDF graph is a set of triples.
+Because of this, our proposal for
+a graph construction interface is,
+in essence,
+a set construction interface.
+We show the full interface
+in @table:interface-graph-construction.
+
+#figure(
+  caption: [Graph Construction Interface],
+)[#{
+  let interface = (
+    "empty_graph/1": (
+      description: "is true iff `G` is an empty graph.",
+      modes: (
+        (
+          mode: "empty_graph(+G)",
+          is: "semidet",
+        ), (
+          mode: "empty_graph(-G)",
+          is: "det",
+        )
+      ),
+    ),
+    "is_graph/1": (
+      description: "is true iff `G` is a graph.",
+      modes: (
+        (
+          mode: "is_graph(+G)",
+          is: "semidet",
+        ),
+      ),
+    ),
+    "list_to_graph/1": (
+      description: "is true iff `G` is a graph containing exactly the triples in the list `L`.",
+      modes: (
+        (
+          mode: "list_to_graph(+L, -G)",
+          is: "det",
+        ),
+      ),
+    ),
+    "graph_to_list/1": (
+      description: "is true iff `L` is a list of triples representing the graph `G`.",
+      modes: (
+        (
+          mode: "graph_to_list(+G, -L)",
+          is: "det",
+        ),
+      ),
+    ),
+    "put_spo_graph/5": (
+      description: "is true iff the graph `G0` with the triple `t(Sub, Pred, Obj)` is the graph `G`.",
+      modes: (
+        (
+          mode: "put_spo_graph(+Sub, +Pred, +Obj, +G0, -G)",
+          is: "det",
+        ),
+      ),
+    ),
+    "put_triple_graph/3": (
+      description: "is true iff the graph `G0` with the triple `T` is the graph `G`.",
+      modes: (
+        (
+          mode: "put_triple_graph(+T, +G0, -G)",
+          is: "det",
+        ),
+      ),
+    ),
+    "del_spo_graph/5": (
+      description: "is true iff the graph `G0` without the triple `t(Sub, Pred, Obj)` is the graph `G`.",
+      modes: (
+        (
+          mode: "put_spo_graph(+Sub, +Pred, +Obj, +G0, -G)",
+          is: "det",
+        ),
+      ),
+    ),
+    "del_triple_graph/3": (
+      description: "is true iff the graph `G0` without the triple `T` is the graph `G`.",
+      modes: (
+        (
+          mode: "put_triple_graph(+T, +G0, -G)",
+          is: "det",
+        ),
+      ),
+    ),
+  );
+  table_interface(interface);
+}] <table:interface-graph-construction>
+
+Our interface handles well
+two kinds of workflows.
+In the first workflow,
+the library user starts
+by creating an empty graph
+with ```pl empty_graph/1```,
+then he repeatedly
+adds triples
+until the graph description is completed.
+In the second workflow,
+the library user starts
+with a graph already defined
+is some representation
+(perhaps it was serialized),
+then he transforms it into a list of triples
+and use ```pl list_to_graph/2```
+to convert it into a graph.
+Then at a latter moment
+(comming from either workflow),
+the user may convert the graph back into
+a list of triples representation
+using ```pl graph_to_list/2```,
+and store it in his preferred serialization format.
+
+Our interface provides
+two kinds of predicates
+for adding and removing triples.
+The first kind
+(```pl put_spo_graph/5``` and ```pl del_spo_graph/5```)
+works with the subject, predicate and object
+separately;
+while the second kind
+(```pl put_triple_graph/3``` and ```pl del_triple_graph/3```)
+works with triple.
+
+In the column Modes,
+we specify the supported modes
+of use of a predicate.
+The arguments of the predicate
+are prefixed with a
+```pl +```, ```pl -```, or ```pl ?```
+indicating if this argument is,
+respectively,
+instantiated (an "input" argument),
+uninstantiated (an "output" argument),
+or
+either (it does not matter if it is instantiated or not).
+The word after ```pl is```
+is a determinism declaration of the predicate,
+i.e. how many times the predicate may succeed.
+For the purposes of this interface,
+we have:
+```pl semidet```
+succeeds 0 or 1 times;
+```pl det```
+succeeds exactly once;
+and
+```pl nondet```
+succeeds 0 or more times.
+
+== Graph Querying <sec:interface-graph-query>
+
+The querying interface is very simple,
+containing one predicate and its mirror.
+We describe it
+in @table:interface-graph-query.
+The predicate ```pl graph_spo/4```
+tries to match
+a subject, predicate and object
+to a triple in the graph.
+In essence,
+```pl graph_spo/4```
+does the same as the ```pl rdf/3```
+shown in @sec:semweb-to-prolog
+and used in Cliopatria's interface~#cite(<cliopatria>),
+but it expects the graph as the first argument.
+The predicate ```pl graph_triple/2```
+does the same as
+```pl graph_spo/4```
+but it works with triples.
+
+#figure(
+  caption: [Graph Querying Interface],
+)[#{
+  let interface = (
+    "graph_spo/4": (
+      description: "is true iff `t(S, P, O)` is a triple in graph `G`.",
+      modes: (
+        (
+          mode: "graph_spo(+G, +S, +P, +O)",
+          is: "semidet",
+        ), (
+          mode: "graph_spo(+G, ?S, ?P, ?O)",
+          is: "nondet",
+        )
+      ),
+    ),
+    "graph_triple/2": (
+      description: "is true iff `T` is a triple in graph `G`.",
+      modes: (
+        (
+          mode: "graph_triple(+G, +T)",
+          is: "semidet",
+        ), (
+          mode: "graph_triple(+G, ?T)",
+          is: "nondet",
+        )
+      ),
+    ),
+  );
+  table_interface(interface);
+}] <table:interface-graph-query>
 
 = The Reference Implementation
 
