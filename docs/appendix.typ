@@ -111,4 +111,16 @@ SELECT ?y ?x { ?y :parent_child+ ?x . }
 % which Xs are descendant of Lara and who are the intermediary descendants?
 ?- plus(lara, parent_child, X, P).
 ```] <prog:reif-familytree-queries>
+
+#codefig(
+  caption: [Property Path Interpreter in Prolog],
+)[#{
+  raw(lang: "pl", read(resource("path_exprs.pl")));
+}] <prog:property-path-pl>
+
+#codefig(
+  caption: [Some SPARQL Query Patterns in Prolog],
+)[#{
+  raw(lang: "pl", read(resource("sparql.pl")));
+}] <prog:sparql-pl>
 ];

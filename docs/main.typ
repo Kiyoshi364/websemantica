@@ -432,10 +432,34 @@ because
 the ```sparql +```
 in a SPARQL property path
 denotes the transitive closure.
+More generally,
+we provide a SPARQL's property path interpreter
+which supports all constructions
+but negated property set.
+The interpreter is implemented
+in @prog:property-path-pl.
 
 In @prog:reif-familytree-queries,
 we list the translated queries
 asked in @repl:familytree.
+
+Some notes
+on some advanced features of SPARQL Query Language.
+Filtering and optional values
+can be implemented within prolog:
+in @prog:sparql-pl,
+we implement a simple case for
+```sparql OPTIONAL```,
+```sparql IF NOT EXISTS```, and
+```sparql IF EXISTS```.
+The ISO-standard compatible prolog implementations
+provide builtin predicates to collect
+the results of a query into a prolog list;
+these predicates are
+```pl findall/3```, ```pl bagof/3```, and ```pl setof/3```.
+We can use these predicates
+to implement some advanced SPARQL features,
+such as ```sparql MINUS```, aggregation primitives and subqueries.
 
 = The Prolog Interface
 
