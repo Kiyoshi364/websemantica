@@ -18,7 +18,7 @@
 }] <fig:familytree>
 
 #repl(
-  caption: [Some Queries and Answers from @prog:familytree-pl to Scryer Prolog],
+  caption: [Some Queries and Answers from @prog:familytree-pl],
 )[```pl
 % is Helena male?
 ?- male(helena).
@@ -96,20 +96,38 @@ SELECT ?y ?x { ?y :parent_child+ ?x . }
 }] <prog:reif-familytree-pl>
 
 #codefig(
-  caption: [Reified Queries from @repl:familytree],
+  caption: [Reified Queries and Answers from @repl:familytree],
 )[```pl
 % is Helena male?
 ?- rdf(helena, isA, male).
+   false.
+
 % which Xs are male?
 ?- rdf(X, isA, male).
+   X = sergio           ;  X = milton           ;  X = george
+;  X = mario            ;  X = alexandre        ;  X = andre.
+
 % is Carmem parent of Ema and Ema female?
 ?- rdf(carmem, parent_child, ema), rdf(ema, isA, female).
+   true.
+
 % which Xs are the daughters of Lara?
 ?- rdf(carmem, parent_child, X), rdf(X, isA, female).
+   X = sara             ;  X = ema.
+
 % which Xs are descendant of Lara?
 ?- plus(lara, parent_child, X).
+   X = milton                       ;  X = george
+;  X = ana                          ;  X = andre
+;  X = carmem                       ;  X = sara
+;  X = ema                          ;  false.
+
 % which Xs are descendant of Lara and who are the intermediary descendants?
 ?- plus(lara, parent_child, X, P).
+   X = milton, P = []               ;  X = george, P = [milton]
+;  X = ana,    P = [milton,george]  ;  X = andre,  P = [milton,george]
+;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
+;  X = ema,    P = [milton,carmem]  ;  false.
 ```] <prog:reif-familytree-queries>
 
 #codefig(
