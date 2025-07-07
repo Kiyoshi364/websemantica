@@ -1,7 +1,7 @@
 % NOTE: if the implementation supports soft-cut (*->)/2
 % it could be implemented as
 %
-% optional(Sub, Pred, Obj) :- ( rdf(Sub, Pred, Obj) *-> true ; false ).
+optional(Sub, Pred, Obj) :- ( rdf(Sub, Pred, Obj) *-> true ; false ).
 %
 % For example SWI-Prolog supports it
 % (documentation) https://www.swi-prolog.org/pldoc/doc_for?object=(*-%3E)/2

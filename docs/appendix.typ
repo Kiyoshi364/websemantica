@@ -137,7 +137,7 @@ SELECT ?y ?x { ?y :parent_child+ ?x . }
 }] <prog:property-path-pl>
 
 #codefig(
-  caption: [Some SPARQL Query Patterns in Prolog],
+  caption: [SPARQL's ```sparql OPTIONAL```, ```sparql FILTER NOT EXISTS``` and ```sparql FILTER EXISTS``` in Prolog],
 )[#{
   raw(lang: "pl", read(resource("sparql.pl")));
 }] <prog:sparql-pl>

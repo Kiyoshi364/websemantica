@@ -23,9 +23,7 @@ pp_(?(PP), Sub, Obj, P0, P) :-
   ; pp_(PP, Sub, Obj, P0, P)
   ).
 pp_(!(PPs), Sub, Obj, P0, P) :-
-  rdf(X, Pred, Y),
-  pp_member(PPs, Pred, Res),
-  pp_negated(Res, X, Y, Sub, Obj, P0, P).
+  throw(error(representation_error(property_path), [culprit- !(PPs)])).
 
 pp_star(PP, Sub, Obj, P0, P) :-
   ( Sub = Obj, P = P0
