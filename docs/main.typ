@@ -860,8 +860,26 @@ The turtle parser
 was implemented with Definite Clause Grammars (DCGs)
 and it resides
 in the file `turtle.pl`.
+Using this parser,
+we implemented
+two utility scripts:
+`ttlcat.pl`
+which expects a file and
+prints to stdout
+each triple in its own line
+(expanding base and prefixes);
+and
+`ttl2pl.pl`
+which expects a file and
+prints to stdout
+each triple in the format
+we specified in @sec:interface-resource
+(with a final dot/period,
+so that one could easily read each triple
+with ```pl read/1```).
+
 We do not consider
-the implementation to be production-ready
+the parser implementation to be production-ready
 for some reasons.
 The first reason is that
 it throws debuging errors
