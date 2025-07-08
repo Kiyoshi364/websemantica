@@ -68,6 +68,7 @@
   date: datetime(year: 2025, month: 07, day: 18),
 );
 #set raw(syntaxes: syntaxes);
+#show raw.where(block: true): show-raw-block;
 
 = Introduction
 

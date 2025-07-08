@@ -1,7 +1,8 @@
-#import "defs.typ": resource, syntaxes, codefig, repl;
+#import "defs.typ": resource, syntaxes, show-raw-block, codefig, repl;
 
 #let appendix = [
-#set raw(syntaxes: syntaxes);
+#set raw(block: true, syntaxes: syntaxes);
+#show raw.where(block: true): show-raw-block;
 
 = Figures, Programs and Interactions
 
@@ -59,7 +60,7 @@
 }] <prog:familytree-ttl>
 
 #codefig(
-  caption: [Some SPARQL Queries from @prog:familytree-ttl]
+  caption: [Some SPARQL Queries to @prog:familytree-ttl]
 )[#{
   let gutter = 0.5em;
   let sep = { v(gutter); line(length: 75%, stroke: 0.25pt + color.gray); v(gutter); };

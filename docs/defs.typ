@@ -18,6 +18,19 @@
   resource("ttl.sublime-syntax"),
 );
 
+// modified from: https://gist.github.com/hongjr03/5bc3f0c019a233450b82cdf583fbaa2c
+#let show-raw-block = it => block(
+)[#grid(
+  columns: (1em, 1fr),
+  align: (right, left),
+  column-gutter: 0.7em,
+  row-gutter: 0.45em,
+  ..(if it.lines.last().text == "" {it.lines.slice(0, -1)} else {it.lines})
+    .enumerate()
+    .map(((i, line)) => (text(color.gray)[#(i + 1)], line))
+    .flatten(),
+)];
+
 #let codefig = figure.with(kind: "code", supplement: [Program]);
 #let repl = figure.with(kind: "repl", supplement: [Interaction]);
 
