@@ -29,8 +29,6 @@
   // The result of a call to the `bibliography` function or `none`.
   bibliography: none, 
   page_config: (:),
-  // HACK: not in the original library
-  appendix: [],
   body,
 ) = {
   //// CONSTANTS
@@ -254,21 +252,6 @@
 
   // Display bibliography.
   bibliography
-
-  // HACK: not in the original library
-  counter(heading).update(0);
-  pagebreak(weak: true);
-  {
-    set heading(
-      numbering: "A",
-      supplement: [Appendix],
-    );
-    show heading: it => {
-      pagebreak(weak: true);
-      [Appendix #counter(heading).display(it.numbering);#if it.body != none and it.body != [] [: #it.body];]
-    };
-    appendix;
-  }
 }
 
 /// Author creation function
