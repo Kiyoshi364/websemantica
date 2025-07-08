@@ -11,7 +11,7 @@
   Semantic Web attempts to
   bring machine-readable information
   to the web
-  by using technologies such as
+  by using frameworks such as
   Resource Description Framework (RDF).
   In RDF,
   the resources (data) are represented as graph nodes
@@ -25,11 +25,11 @@
   suited for declarative and symbolic programming
   which we stablish some facts and rules (a knowledge database)
   and then
-  we ask questions to the Prolog system about these knowledge
-  to find out on which conditions it is true.
+  we ask questions to the Prolog system about the defined knowledge
+  to find out on which conditions the question is true.
   We can represent
   a RDF database and SPARQL queries
-  with Prolog's facts and queries,
+  using Prolog's facts and queries,
   respectively.
   In this report,
   we propose
@@ -40,7 +40,7 @@
 ];
 
 #let keywords = (
-  "Semantic Web Framework",
+  "Semantic Web",
   "Resource Description Framework",
   "Prolog",
   "Logic Programming",
@@ -70,22 +70,65 @@
 
 = Introduction
 
-#lorem(100)
-#cite(<cliopatria>)
+The Semantic Web movement
+is a modern attempt to
+bring machine-readable data to the web.
+The Resource Description Framework (RDF)#footnote(links.rdf-primer);
+describes a way to represent
+machine-readable information and knowledge
+via a directed graph with labeled edges.
+In this framework,
+an edge
+from node $S$
+to node $O$
+with label $P$
+stands for an assertion
+that the predicate $P$
+holds for
+the resources $S$ and $O$.
+Such graph is commonly stored
+in triple databases.
+Ali, et al.~#cite(<triplestoresurvey>)
+provide a survey
+with implementation details
+for efficient storage and query
+for such graphs.
 
-#cite(<triplestoresurvey>)
+On the other side,
+we have the Prolog,
+a logic programing language
+where information and knowledge
+is naturally represented
+with predicates
+between symbols.
+The semantics of Prolog programs
+suit well with
+the graph representation of
+RDF databases.
+We already have a library for
+building semantic web applications
+in Prolog: Cliopatria~#cite(<cliopatria>).
+However,
+Cliopatria is a SWI-Prolog library
+with a C implementation
+which makes it difficult to port
+to others Prolog implementations.
+
+This work ...
 
 = Prolog and RDF
 
 Before we describe the interface,
 we give a brief introduction to
-Prolog, RDF
+Prolog, RDF and SPARQL,
 and how RDF databases
-may be represented in Prolog.
+may be represented and queried
+in Prolog.
 For that,
 we will provide an prolog example
 then show a translation of this example
-to RDF and SPARQL queries.
+to RDF and SPARQL queries
+and then back to Prolog.
 
 == Prolog Language
 
