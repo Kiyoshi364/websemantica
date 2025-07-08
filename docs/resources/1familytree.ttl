@@ -1,4 +1,4 @@
-@prefix : <http://example.org/base/> .
+@prefix : <http://example.org/> .
 
 :sergio    :parent_child :milton.       :lara      :parent_child :milton.
 :milton    :parent_child :george.       :milton    :parent_child :carmem.

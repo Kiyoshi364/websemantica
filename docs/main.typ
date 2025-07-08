@@ -65,7 +65,7 @@
   keywords: keywords,
   date: datetime(year: 2025, month: 07, day: 18),
 );
-#set raw(syntaxes: syntaxes);
+#set raw(syntaxes: syntaxes, block: true);
 #show raw.where(block: true): show-raw-block;
 
 = Introduction
@@ -120,6 +120,12 @@ The number after ```pl /```
 indicates the arity (number of arguments) of the predicate
 which is used to differentiate predicates.
 
+#codefig(
+  caption: [Family Tree in Prolog],
+)[#{
+  raw(lang: "pl", read(resource("0familytree.pl")));
+}] <prog:familytree-pl>
+
 The predicate ```pl parent_child(P, C)```
 indicates that ```pl P```
 is the parent of  ```pl C```
@@ -142,12 +148,6 @@ indicates that ```pl P``` is male,
 likewise,
 the predicate ```pl female(P)```
 indicates that ```pl P``` is female.
-These predicates is represented
-in @fig:familytree:
-the arrows points from the parent to the child,
-males are drawn in a box,
-and
-females are drawn in an oval.
 
 Before looking at the rules of @prog:familytree-pl
 we will take a look at queries
@@ -266,6 +266,12 @@ each triple
 asserts a truth:
 the predicate holds for
 the subject and the object.
+
+#codefig(
+  caption: [Family Tree in Turtle],
+)[#{
+  raw(lang: "ttl", read(resource("1familytree.ttl")));
+}] <prog:familytree-ttl>
 
 In @prog:familytree-ttl,
 we show a RDF database
@@ -435,31 +441,18 @@ the ```sparql +```
 in a SPARQL property path
 denotes the transitive closure.
 More generally,
-we provide a SPARQL's property path interpreter
-which supports all constructions
-but negated property set.
-The interpreter is implemented
-in @prog:property-path-pl.
+one could implement
+a full SPARQL's property path interpreter
+in Prolog.
 
-In @prog:reif-familytree-queries,
-we list the translated queries
-asked in @repl:familytree.
-
-Some notes
-on some advanced features of SPARQL Query Language.
-Filtering and optional values
-can be implemented within prolog:
-in @prog:sparql-pl,
-we implement a simple case for
-```sparql OPTIONAL```,
-```sparql IF NOT EXISTS```, and
-```sparql IF EXISTS```.
-The ISO-standard compatible prolog implementations
+ISO-standard compatible prolog implementations
 provide builtin predicates to collect
 the results of a query into a prolog list;
 these predicates are
 ```pl findall/3```, ```pl bagof/3```, and ```pl setof/3```.
 We can use these predicates
+to collect the results of a query
+and use those results
 to implement other SPARQL features,
 such as
 ```sparql DESCRIBE``` query form,
@@ -853,9 +846,6 @@ in the file `semweb_unord_lists.pl`.
 We implemented the reference library
 using some list builtins
 and predicates from `library(reif)`~#cite(<indexingdif>).
-We show the implementation
-ommiting type checking
-in @prog:reference-impl.
 The implementation is straight forward,
 because of this,
 we will not talk about it any further.
@@ -957,18 +947,6 @@ which shortens the path to implement federated queries.
 
 = Figures, Programs and Interactions
 
-#codefig(
-  caption: [Family Tree in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("0familytree.pl")));
-}] <prog:familytree-pl>
-
-#figure(
-  caption: [Family Tree Representation],
-)[#{
-  image(resource("familytree.dot.svg"))
-}] <fig:familytree>
-
 #repl(
   caption: [Some Queries and Answers from @prog:familytree-pl],
 )[```pl
@@ -1003,12 +981,6 @@ which shortens the path to implement federated queries.
 ;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
 ;  X = ema,    P = [milton,carmem]  ;  false.
 ```] <repl:familytree>
-
-#codefig(
-  caption: [Family Tree in Turtle],
-)[#{
-  raw(lang: "ttl", read(resource("1familytree.ttl")));
-}] <prog:familytree-ttl>
 
 #codefig(
   caption: [Some SPARQL Queries to @prog:familytree-ttl]
@@ -1046,56 +1018,3 @@ SELECT ?y ?x { ?y :parent_child+ ?x . }
 )[#{
   raw(lang: "pl", read(resource("2familytree.pl")));
 }] <prog:reif-familytree-pl>
-
-#codefig(
-  caption: [Reified Queries and Answers from @repl:familytree],
-)[```pl
-% is Helena male?
-?- rdf(helena, isA, male).
-   false.
-
-% which Xs are male?
-?- rdf(X, isA, male).
-   X = sergio           ;  X = milton           ;  X = george
-;  X = mario            ;  X = alexandre        ;  X = andre.
-
-% is Carmem parent of Ema and Ema female?
-?- rdf(carmem, parent_child, ema), rdf(ema, isA, female).
-   true.
-
-% which Xs are the daughters of Lara?
-?- rdf(carmem, parent_child, X), rdf(X, isA, female).
-   X = sara             ;  X = ema.
-
-% which Xs are descendant of Lara?
-?- plus(lara, parent_child, X).
-   X = milton                       ;  X = george
-;  X = ana                          ;  X = andre
-;  X = carmem                       ;  X = sara
-;  X = ema                          ;  false.
-
-% which Xs are descendant of Lara and who are the intermediary descendants?
-?- plus(lara, parent_child, X, P).
-   X = milton, P = []               ;  X = george, P = [milton]
-;  X = ana,    P = [milton,george]  ;  X = andre,  P = [milton,george]
-;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
-;  X = ema,    P = [milton,carmem]  ;  false.
-```] <prog:reif-familytree-queries>
-
-#codefig(
-  caption: [Property Path Interpreter in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("path_exprs.pl")));
-}] <prog:property-path-pl>
-
-#codefig(
-  caption: [SPARQL's ```sparql OPTIONAL```, ```sparql FILTER NOT EXISTS``` and ```sparql FILTER EXISTS``` in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("sparql.pl")));
-}] <prog:sparql-pl>
-
-#codefig(
-  caption: [Reference implementation with unorded lists],
-)[#{
-  raw(lang: "pl", read(resource("semweb_unord_lists.pl")));
-}] <prog:reference-impl>
