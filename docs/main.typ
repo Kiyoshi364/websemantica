@@ -918,8 +918,41 @@ and
 are treated as different IRIs
 (but they are the same).
 
-= Conclusion
+= Ideas for Extending the Interface
 
-== Future Work
+We have some ideas
+for making the interface
+more convenient to users.
+We could add more set operations
+to the graph construction interface,
+such as,
+union, intersection, and minus.
+These operations would
+allow implementations
+to provide more preformative alternatives
+for those operations,
+compared to the composition of
+the primitives already provided.
 
-== asdf
+Another ideia
+is to provide support for prefixes.
+In some occasions,
+it would be nicer to
+have the possibility to
+interface with prefixes,
+such as
+```pl xsd:integer```,
+instead of a full IRI.
+Cliopatria has support to prefixed IRIs.
+
+The last idea is
+to define a DSL to describe the queries.
+The existence of a DSL
+(similar to DCGs)
+would allow an implementation to:
+interpret the query
+(allowing to implement SPARQL's ```sparql LIMIT```);
+optimize the query before execution
+(similarly to Cliopatria's ```pl rdf_optimize/2```);
+translate queries to and from SPARQL,
+which shortens the path to implement federated queries.
