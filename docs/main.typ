@@ -845,19 +845,27 @@ using unordered lists of triples,
 a non-production-ready turtle parser implementation,
 and
 some tests cases for both.
+All the code is available
+at the repository:
+#repo.
+
 The reference implementation resides
 in the file `semweb_unord_lists.pl`.
 We implemented the reference library
 using some list builtins
 and predicates from `library(reif)`~#cite(<indexingdif>).
+We show the implementation
+ommiting type checking
+in @prog:reference-impl.
 The implementation is straight forward,
 because of this,
 we will not talk about it any further.
 
 == Turtle Parser
 
-The turtle parser
-was implemented with Definite Clause Grammars (DCGs)
+We used Definite Clause Grammars (DCGs)
+to implement
+the turtle parser
 and it resides
 in the file `turtle.pl`.
 Using this parser,

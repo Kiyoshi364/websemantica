@@ -26,11 +26,12 @@ empty_graph([]).
 is_graph([]).
 is_graph([T | G]) :- triple_t(T, true), is_graph(G).
 
-graph_to_list(G, G).
 list_to_graph(L, G) :-
   empty_graph(G0),
   % NOTE: this is to check if the list has valid triples
   foldl(put_triple_graph, L, G0, G).
+
+graph_to_list(G, G).
 
 put_spo_graph(S, P, O, G0, G) :-
   must_be_subject(S),
@@ -45,7 +46,7 @@ put_triple_graph(T, G0, G) :-
 put_triple_graph_(T, G0, G) :-
   if_(memberd_t(T, G0), G = G0, G = [T | G0]).
 
-%%%%% Graph Query %%%%%
+%%%%% Graph Querying %%%%%
 
 graph_spo(G, S, P, O) :- graph_triple(G, t(S, P, O)).
 

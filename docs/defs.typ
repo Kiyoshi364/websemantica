@@ -5,6 +5,11 @@
   rdfs: link("https://www.w3.org/TR/2014/REC-rdf-schema-20140225/"),
   sparql11: link("https://www.w3.org/TR/2013/REC-sparql11-query-20130321/"),
 );
+#let gitlab(owner: "Hashi364", repo) = {
+  let target = "gitlab.com/" + owner + "/" + repo;
+  link("https://" + target, raw(target));
+};
+#let repo = gitlab("semweb");
 
 #let resource(name) = "resources/" + name;
 

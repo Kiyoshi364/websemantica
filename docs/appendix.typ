@@ -141,4 +141,10 @@ SELECT ?y ?x { ?y :parent_child+ ?x . }
 )[#{
   raw(lang: "pl", read(resource("sparql.pl")));
 }] <prog:sparql-pl>
+
+#codefig(
+  caption: [Reference implementation with unorded lists],
+)[#{
+  raw(lang: "pl", read(resource("semweb_unord_lists.pl")));
+}] <prog:reference-impl>
 ];
