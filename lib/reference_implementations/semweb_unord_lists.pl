@@ -2,6 +2,7 @@
   empty_graph/1, is_graph/1,
   list_to_graph/2, graph_to_list/2,
   put_spo_graph/5, put_triple_graph/3,
+  del_spo_graph/5, del_triple_graph/3,
   graph_spo/4, graph_triple/2,
   query_graph/2, graph_findall/4
 ]).
@@ -10,7 +11,7 @@
   member/2, foldl/4
 ]).
 :- use_module(library(reif), [
-  if_/3, memberd_t/3
+  if_/3, dif/3, memberd_t/3, tfilter/3
 ]).
 
 :- use_module('../semweb_error', [
@@ -45,6 +46,18 @@ put_triple_graph(T, G0, G) :-
 
 put_triple_graph_(T, G0, G) :-
   if_(memberd_t(T, G0), G = G0, G = [T | G0]).
+
+del_spo_graph(S, P, O, G0, G) :-
+  must_be_subject(S),
+  must_be_predicate(P),
+  must_be_object(O),
+  del_triple_graph_(t(S, P, O), G0, G).
+
+del_triple_graph(T, G0, G) :-
+  must_be_triple(T),
+  del_triple_graph_(T, G0, G).
+
+del_triple_graph_(T, G0, G) :- tfilter(dif(T), G0, G).
 
 %%%%% Graph Querying %%%%%
 

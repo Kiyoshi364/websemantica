@@ -18,8 +18,8 @@ load_semweb_module(M) :- use_module(M, [
   empty_graph/1, is_graph/1,
   list_to_graph/2, graph_to_list/2,
   put_spo_graph/5, put_triple_graph/3,
-  graph_spo/4, graph_triple/2,
-  query_graph/2, graph_findall/4
+  del_spo_graph/5, del_triple_graph/3,
+  graph_spo/4, graph_triple/2
 ]).
 
 nwdet_ok(_:T) :- nwdet(T).
@@ -139,9 +139,40 @@ test_construction_put_triple_graph(Lib) :-
   meta_test_construction(Lib, Exp, G),
 true.
 
-%%%%%%%%%%%%%%% BEGIN Construction Properties %%%%%%%%%%%%%%%
+test_construction_del_spo_empty(Lib) :-
+  Lib:empty_graph(Exp),
+  Lib:empty_graph(G0),
+  S = iri(subject),
+  P = iri(predicate),
+  O = iri(object),
+  Lib:del_spo_graph(S, P, O, G0, G),
+  meta_test_construction(Lib, Exp, G),
+true.
 
-%%%%%%%%%%%%%%%  END  Construction Properties %%%%%%%%%%%%%%%
+test_construction_del_triple_empty(Lib) :-
+  Lib:empty_graph(Exp),
+  Lib:empty_graph(G0),
+  T = t(iri(subject), iri(predicate), iri(object)),
+  Lib:del_triple_graph(T, G0, G),
+  meta_test_construction(Lib, Exp, G),
+true.
+
+test_construction_del_spo_graph(Lib) :-
+  database(Ts),
+  Lib:empty_graph(Exp),
+  Lib:list_to_graph(Ts, G0),
+  triples_spos(Ts, Ss, Ps, Os),
+  foldl(Lib:del_spo_graph, Ss, Ps, Os, G0, G),
+  meta_test_construction(Lib, Exp, G),
+true.
+
+test_construction_del_triple_graph(Lib) :-
+  database(Ts),
+  Lib:empty_graph(Exp),
+  Lib:list_to_graph(Ts, G0),
+  foldl(Lib:del_triple_graph, Ts, G0, G),
+  meta_test_construction(Lib, Exp, G),
+true.
 
 %%%%%%%%%%%%%%%  END  Construction %%%%%%%%%%%%%%%
 
@@ -496,10 +527,6 @@ test_query_inline_triple_tim_jane_describe_jane(Lib) :-
 true.
 
 %%%%%%%%%%%%%%%  END  Query Inline %%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%% META  Query ???? %%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%% BEGIN Query ???? %%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%  END  Query ???? %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  END  TESTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
