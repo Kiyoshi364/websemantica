@@ -114,9 +114,28 @@ with a C implementation
 which makes it difficult to port
 to others Prolog implementations.
 
-This work ...
+In this work,
+we introduce both Prolog and RDF,
+assuming few previous knowledge
+(@sec:prolog-rdf).
+We describe a library interface
+for prolog programs
+to work with RDF databases,
+more specifically,
+to programatically
+build and query knowledge graphs
+(@sec:interface).
+We also provide
+a reference implementation
+of this interface,
+implemented with Prolog primitives
+(@sec:reference-impl).
+Finally,
+we discuss further improvements
+to the proposed interface
+(@sec:futher-improvements).
 
-= Prolog and RDF
+= Prolog and RDF <sec:prolog-rdf>
 
 Before we describe the interface,
 we give a brief introduction to
@@ -504,7 +523,7 @@ aggregation primitives
 and
 subqueries.
 
-= The Prolog Interface
+= The Prolog Interface <sec:interface>
 
 The prolog interface we propose
 is inspired by Cliopatria's interface~#cite(<cliopatria>).
@@ -871,7 +890,7 @@ but it works with triples.
   table_interface(interface);
 }] <table:interface-graph-query>
 
-= The Accompanying Implementation
+= The Accompanying Implementation <sec:reference-impl>
 
 Alongside with the interface description,
 we provide
@@ -949,7 +968,7 @@ and
 are treated as different IRIs
 (but they are the same).
 
-= Ideas for Extending the Interface
+= Ideas for Extending the Interface <sec:futher-improvements>
 
 We have some ideas
 for making the interface
