@@ -2,7 +2,6 @@
   empty_prefixes/1, is_prefixes/1,
   list_to_prefixes/2, prefixes_to_list/2,
   put_prefixes/4,
-  del_prefixes/4,
   get_prefixes/3,
   strip_prefix/3, unstrip_prefix/3
 ]).
@@ -24,13 +23,11 @@ put_prefixes(P, N, PP0, [P-N | PP]) :-
   tfilter(key_dif(P), PP0, PP).
 
 del_prefixes(P, PP, PP0) :- tfilter(key_dif(P), PP, PP0).
-del_prefixes(P, N, PP, PP0) :- tfilter(key_dif(P, N), PP, PP0).
 
 get_prefixes(P, N, PP) :-
   tmember(=(P-N), PP).
 
 key_dif(K, K1-_, T) :- dif(K, K1, T).
-key_dif(K, V, K1-V, T) :- dif(K, K1, T).
 
 strip_prefix(PP, R, R0) :-
   ( var(R) -> true
