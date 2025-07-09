@@ -47,7 +47,7 @@ object_t(O, T) :- ;(iri_t(O), ( blank_t(O) ; literal_t(O) ), T).
 iri_t(Iri, T) :- functor_t(Iri, iri, 1, T).
 
 blank_t(B, T) :- ','(functor_t(B, blank, 2), blank_t_(B), T).
-blank_t_(blank(L, N), T) :- matcheq_t(L, [labeled-iri_t(N), unlabeled- =(true)], T).
+blank_t_(blank(L, N), T) :- matcheq_t(L, [labeled-atom_t(N), unlabeled- =(true)], T).
 
 literal_t(L, T) :- ','(functor_t(L, literal, 2), literal_t_(L), T).
 literal_t_(literal(Ty, Str), T) :- ','(iri_t(Ty), literal_obj_t(Str), T).

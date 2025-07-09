@@ -51,7 +51,8 @@ database([
   t(iri('http://example.com/base/Jane'), iri('http://example.com/base/age'), literal(iri('http://www.w3.org/2001/XMLSchema#integer'), "23")),
   t(iri('http://example.com/base/Jane'), iri('http://example.com/base/gender'), iri('http://example.com/base/female')),
   t(iri('http://example.com/base/John'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/Tim')),
-  t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John'))
+  t(iri('http://example.com/base/Tim'), iri('http://xmlns.com/foaf/0.1/knows'), iri('http://example.com/base/John')),
+  t(blank(labeled, '_:a'), iri('http://xmlns.com/foaf/0.1/knows'), blank(unlabeled, 0))
 ]).
 
 alt_database([
@@ -253,7 +254,9 @@ test_query_inline_spo_tim_friend_and_name(Lib) :-
     iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
     iri('http://example.com/base/John')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
     iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
+    blank(labeled, '_:a')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    blank(labeled, '_:a')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
@@ -272,7 +275,9 @@ test_query_inline_triple_tim_friend_and_name(Lib) :-
     iri('http://example.com/base/John')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
     iri('http://example.com/base/John')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
     iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
-    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
+    iri('http://example.com/base/Tim')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim"),
+    blank(labeled, '_:a')-literal(iri('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'), @("John", "en")),
+    blank(labeled, '_:a')-literal(iri('http://www.w3.org/2001/XMLSchema#string'), "Tim")
   ],
   database(Ts),
   Lib:list_to_graph(Ts, G),
