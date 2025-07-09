@@ -65,16 +65,18 @@ graph_spo(G, S, P, O) :- graph_triple(G, t(S, P, O)).
 
 graph_triple(G, T) :- member(T, G).
 
-query_graph(( Qa , Qb ), G) :- query_graph(Qa, G), query_graph(Qb, G).
-query_graph(( Qa ; Qb ), G) :-
-  \+ subsumes_term(( _ -> _ ), Qa),
-  ( query_graph(Qa, G) ; query_graph(Qb, G) ).
-query_graph(( Qa0 -> Qa1 ; Qb ), G) :-
-  ( query_graph(Qa0, G) -> query_graph(Qa1, G)
-  ; query_graph(Qb, G)
-  ).
-query_graph({ Goal }, _) :- call(Goal).
-query_graph(rdf(S, P, O), G) :- graph_spo(G, S, P, O).
-query_graph(grdf(AG, S, P, O), _) :- graph_spo(AG, S, P, O).
-
-graph_findall(G, X, Q, Xs) :- findall(X, query_graph(Q, G), Xs).
+% Sketch for a DSL interpreter
+%
+% query_graph(( Qa , Qb ), G) :- query_graph(Qa, G), query_graph(Qb, G).
+% query_graph(( Qa ; Qb ), G) :-
+%   \+ subsumes_term(( _ -> _ ), Qa),
+%   ( query_graph(Qa, G) ; query_graph(Qb, G) ).
+% query_graph(( Qa0 -> Qa1 ; Qb ), G) :-
+%   ( query_graph(Qa0, G) -> query_graph(Qa1, G)
+%   ; query_graph(Qb, G)
+%   ).
+% query_graph({ Goal }, _) :- call(Goal).
+% query_graph(rdf(S, P, O), G) :- graph_spo(G, S, P, O).
+% query_graph(grdf(AG, S, P, O), _) :- graph_spo(AG, S, P, O).
+%
+% graph_findall(G, X, Q, Xs) :- findall(X, query_graph(Q, G), Xs).
