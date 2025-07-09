@@ -129,7 +129,8 @@ build and query knowledge graphs
 We also provide
 a reference implementation
 of this interface,
-implemented with Prolog primitives
+implemented in Prolog
+and tested using Scryer Prolog#footnote(links.scryer-prolog);
 (@sec:reference-impl).
 Finally,
 we discuss further improvements
@@ -145,24 +146,26 @@ and how RDF databases
 may be represented and queried
 in Prolog.
 For that,
-we will provide an prolog example
-then show a translation of this example
-to RDF and SPARQL queries
-and then back to Prolog.
+we will provide example
+database and queries
+and its representations
+in Prolog,
+RDF and SPARQL queries,
+and then back in Prolog.
 
 == Prolog Language
 
 Prolog programming
-consists of describing what is true
-by asserting truth facts and
+consists of describing
+the truth
+by asserting facts and
 rules for deriving new truths
 (the program),
 and then
-ask true of false questions to the system
-(the query),
-which will try to simplify them
-to some condition which makes the question true.
-Facts and rules are terminated with a period/dot (```pl .```).
+asking a question (query)
+to the system,
+which will try to simplify it
+to some set of condition which makes the query true.
 In @prog:familytree-pl,
 ```pl parent_child(sergio, milton).```
 is a fact
@@ -984,7 +987,8 @@ a reference implementation
 using unordered lists of triples,
 a non-production-ready turtle parser implementation,
 and
-some tests cases for both.
+some tests cases for both
+which run in Scryer Prolog.
 All the code is available
 at the repository
 #repo.

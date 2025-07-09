@@ -4,6 +4,7 @@
   rdf-concepts: link("https://www.w3.org/TR/2014/REC-rdf11-concepts-20140225/"),
   rdfs: link("https://www.w3.org/TR/2014/REC-rdf-schema-20140225/"),
   sparql11: link("https://www.w3.org/TR/2013/REC-sparql11-query-20130321/"),
+  scryer-prolog: link("https://www.scryer.pl/"),
 );
 #let gitlab(owner: "Hashi364", repo) = {
   let target = "gitlab.com/" + owner + "/" + repo;
