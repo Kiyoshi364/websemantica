@@ -65,7 +65,7 @@
   keywords: keywords,
   date: datetime(year: 2025, month: 07, day: 18),
 );
-#set raw(syntaxes: syntaxes, block: true);
+#set raw(syntaxes: syntaxes);
 #show raw.where(block: true): show-raw-block;
 
 = Introduction
@@ -91,7 +91,8 @@ in triple databases.
 Ali, et al.~#cite(<triplestoresurvey>)
 provide a survey
 with implementation details
-for efficient storage and query
+for efficient storage and
+efficient SPARQL#footnote(links.sparql11) query execution
 for such graphs.
 
 On the other side,
@@ -161,15 +162,19 @@ ask true of false questions to the system
 (the query),
 which will try to simplify them
 to some condition which makes the question true.
-For further explanation,
-consider the @prog:familytree-pl.
 Facts and rules are terminated with a period/dot (```pl .```).
-For instance,
+In @prog:familytree-pl,
 ```pl parent_child(sergio, milton).```
 is a fact
 and
 ```pl asc_desc(A, D) :- parent_child(A, X), ( X = D ; asc_desc(X, D) ).```
 is a rule.
+
+#codefig(
+  caption: [Family Tree in Prolog],
+)[#{
+  raw(lang: "pl", block: true, read(resource("0familytree.pl")));
+}] <prog:familytree-pl>
 
 @prog:familytree-pl describes 3 predicates with facts
 (```pl parent_child/2```,
@@ -179,18 +184,16 @@ and 2 predicates with rules
 (```pl asc_desc/2```, and
 ```pl asc_desc/3```).
 The number after ```pl /```
-indicates the arity (number of arguments) of the predicate
-which is used to differentiate predicates.
-
-#codefig(
-  caption: [Family Tree in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("0familytree.pl")));
-}] <prog:familytree-pl>
+indicates the arity (number of arguments) of the predicate.
+If two predicates
+have the same name
+but different arities,
+Prolog considers them
+different.
 
 The predicate ```pl parent_child(P, C)```
-indicates that ```pl P```
-is the parent of  ```pl C```
+is true when
+```pl P``` is the parent of  ```pl C```
 (which is a child of  ```pl P```).
 The names
 which start with an uppercase letter
@@ -204,12 +207,47 @@ inside the parenthesis
 ...)
 are atoms:
 named constants
-representing distict individuals.
+representing distinct individuals.
 The predicate ```pl male(P)```
 indicates that ```pl P``` is male,
 likewise,
 the predicate ```pl female(P)```
 indicates that ```pl P``` is female.
+
+#repl(
+  caption: [Some Queries and Answers from @prog:familytree-pl],
+)[```pl
+% is Helena male?
+?- male(helena).
+   false.
+
+% which Xs are male?
+?- male(X).
+   X = sergio           ;  X = milton           ;  X = george
+;  X = mario            ;  X = alexandre        ;  X = andre.
+
+% is Carmem parent of Ema and Ema female?
+?- parent_child(carmem, ema), female(ema).
+   true.
+
+% which Xs are the daughters of Carmem?
+?- parent_child(carmem, X), female(X).
+   X = sara             ;  X = ema.
+
+% which Xs are descendant of Lara?
+?- asc_desc(lara, X).
+   X = milton                       ;  X = george
+;  X = ana                          ;  X = andre
+;  X = carmem                       ;  X = sara
+;  X = ema                          ;  false.
+
+% which Xs are descendant of Lara and who are the intermediary descendants?
+?- asc_desc(lara, X, P).
+   X = milton, P = []               ;  X = george, P = [milton]
+;  X = ana,    P = [milton,george]  ;  X = andre,  P = [milton,george]
+;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
+;  X = ema,    P = [milton,carmem]  ;  false.
+```] <repl:familytree>
 
 Before looking at the rules of @prog:familytree-pl
 we will take a look at queries
@@ -227,7 +265,6 @@ The previous queries mean:
 "is Helena male?",
 and
 "is Carmem parent of Ema and Ema female?".
-
 We can also make
 partially instantiated queries
 to prolog,
@@ -329,12 +366,6 @@ asserts a truth:
 the predicate holds for
 the subject and the object.
 
-#codefig(
-  caption: [Family Tree in Turtle],
-)[#{
-  raw(lang: "ttl", read(resource("1familytree.ttl")));
-}] <prog:familytree-ttl>
-
 In @prog:familytree-ttl,
 we show a RDF database
 (serialized in turtle#footnote(links.turtle);)
@@ -380,8 +411,14 @@ and
 the object is the predicate name.
 The ```ttl isA``` is a special predicate
 linking an individual to its class.
-(In RDFS#footnote(links.rdfs);,
-this special predicate is called ```ttl rdf:type```.)
+In RDFS#footnote(links.rdfs);,
+this special predicate is called ```ttl rdf:type```.
+
+#codefig(
+  caption: [Family Tree in Turtle],
+)[#{
+  raw(lang: "ttl", block: true, read(resource("1familytree.ttl")));
+}] <prog:familytree-ttl>
 
 In this translation
 from Prolog to RDF,
@@ -395,11 +432,45 @@ In @prog:familytree-ttl,
 the predicates
 ```ttl :male``` and ```ttl :female```
 are objects of some triples.
-We will talk more about reification
-in @sec:semweb-to-prolog.
-While in @prog:familytree-ttl,
+While in @prog:familytree-pl,
 predicates and individuals
 are distinct things.
+We will talk more about
+how to do reification
+in prolog
+in @sec:semweb-to-prolog.
+
+#codefig(
+  caption: [Some SPARQL Queries to @prog:familytree-ttl]
+)[#{
+  set raw(block: true);
+  let gutter = 0.5em;
+  let sep = { v(gutter); line(length: 75%, stroke: 0.25pt + color.gray); v(gutter); };
+  let queries = (
+    ```sparql
+# is Helena male?
+ASK { :helena :isA :male . }
+    ```, ```sparql
+# which Xs are male?
+SELECT ?x WHERE { ?x :isA :male . }
+    ```, ```sparql
+# is Carmem parent of Ema and Ema female?
+ASK { :carmem :parent_child :ema . :ema :isA :female . }
+    ```, ```sparql
+# which Xs are the daughters of Carmem?
+SELECT ?x { :carmem :parent_child ?x . ?x :isA :female . }
+    ```, ```sparql
+# which Xs are descendant of Lara?
+SELECT ?x { :lara :parent_child+ ?x . }
+    ```, ```sparql
+# which Xs are descendant of which Ys?
+SELECT ?y ?x { ?y :parent_child+ ?x . }
+    ```,
+  );
+  stack(dir: ttb,
+    ..queries.intersperse(sep)
+  )
+}] <prog:familytree-sparql>
 
 Using the database
 defined in @prog:familytree-ttl,
@@ -417,8 +488,9 @@ We use property paths
 to retrieve the descendants of Lara.
 However, it is not possible to
 retrieve the path from Lara to the descendant
-without extensions to SPARQL~1.1.
-See the translated SPARQL queries
+without implementation-specific extensions to SPARQL~1.1.
+We show
+the translated SPARQL queries
 in @prog:familytree-sparql.
 
 Notice that
@@ -430,7 +502,7 @@ neither in SPARQL queries (@prog:familytree-sparql).
 This happens because ```pl asc_desc/2```
 is in essence some sort of subquery to the database
 and SPARQL does not provide a way to name subqueries.
-Inspite of that,
+Despite of that,
 we are still able to ask
 "which Xs are descendant of Lara?"
 in SPARQL,
@@ -523,6 +595,12 @@ aggregation primitives
 and
 subqueries.
 
+#codefig(
+  caption: [Reified Family Tree in Prolog],
+)[#{
+  raw(lang: "pl", block: true, read(resource("2familytree.pl")));
+}] <prog:reif-familytree-pl>
+
 = The Prolog Interface <sec:interface>
 
 The prolog interface we propose
@@ -560,12 +638,12 @@ converting back and forward
 from atoms to strings.
 
 We will describe the interface proposal in three parts:
-resource and statement representation (@sec:interface-resource),
+resource and triple representation (@sec:interface-resource),
 graph construction (@sec:interface-graph-construction),
 and
 graph querying (@sec:interface-graph-query).
 
-== Resource and Statement Representation <sec:interface-resource>
+== Resource and Triple Representation <sec:interface-resource>
 
 A resource in a RDF graph is either a IRI, a blank node or a literal.
 Thus, we represent a resource with one of the following functors:
@@ -583,7 +661,7 @@ For instance,
 and
 ```pl iri('mailto:alice@example.org')```.
 ```pl Iri``` should be compatible with
-Cleopatria's representation of an IRI.
+Cliopatria's representation of an IRI.
 
 For the blank node case
 ```pl blank(Labeled, Name)```,
@@ -594,10 +672,11 @@ If ```pl Labeled = labeled```,
 then the second inner value ```pl Name```
 is an atom starting with `_:`,
 for instance,
-```pl '_:a'```, ```pl '_:foo'```, and ```pl '_:123'```.
+```pl '_:a'```, ```pl '_:foo'```, and ```pl '_:123'```
+(a compatible representation for Cliopatria).
 Otherwise ```pl Labeled = unlabeled```,
 and the second inner value ```pl Name```
-is any ground Prolog term.
+is any Prolog term.
 
 Originally,
 RDF does not make
@@ -626,7 +705,8 @@ where ```pl Iri```
 represents the type of the literal.
 If ```pl Type``` represents a language-tagged string,
 i.e. ```pl Iri = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString'```,
-then ```pl Repr = @(Str, Lang)```,
+then ```pl Repr = @(Str, Lang)```
+(or ```pl Repr = Str@Lang``` with a defined operator),
 where ```pl Str``` is a prolog string
 with the language tag ```pl Lang```
 which is also a prolog string.
@@ -634,12 +714,12 @@ Otherwise
 the literal is not a language-tagged string,
 and the second inner value ```pl Repr```
 is a prolog string
-which is a string representation of the literal.
+which is the string representation of the literal.
 
 The RDF framework considers
 literals with the same type,
 but different underlying string representations,
-to be different nodes.
+to be different resources.
 For instance,
 using
 ```pl IntegerType = 'http://www.w3.org/2001/XMLSchema#integer'```,
@@ -648,7 +728,8 @@ the literals
 and
 ```pl literal(IntegerType, "01")```
 are considered different,
-despite both having the same value.
+despite both representing
+the same integer value.
 Therefore,
 it is important to capture
 this behavior in our prolog representation of literals.
@@ -771,10 +852,10 @@ the library user starts
 by creating an empty graph
 with ```pl empty_graph/1```,
 then he repeatedly
-adds triples
+adds (or removes) triples
 until the graph description is completed.
 In the second workflow,
-the library user starts
+the user starts
 with a graph already defined
 is some representation
 (perhaps it was serialized),
@@ -786,7 +867,9 @@ Then at a latter moment
 the user may convert the graph back into
 a list of triples representation
 using ```pl graph_to_list/2```,
-and store it in his preferred serialization format.
+and then
+store the graph
+in his preferred serialization format.
 
 Our interface provides
 two kinds of predicates
@@ -797,7 +880,7 @@ works with the subject, predicate and object
 separately;
 while the second kind
 (```pl put_triple_graph/3``` and ```pl del_triple_graph/3```)
-works with triple.
+works with a triple.
 
 In the column Modes,
 we specify the supported modes
@@ -805,7 +888,7 @@ of use of a predicate.
 The arguments of the predicate
 are prefixed with a
 ```pl +```, ```pl -```, or ```pl ?```
-indicating if this argument is,
+indicating if this argument should be,
 respectively,
 instantiated (an "input" argument),
 uninstantiated (an "output" argument),
@@ -814,15 +897,18 @@ either (it does not matter if it is instantiated or not).
 The word after ```pl is```
 is a determinism declaration of the predicate,
 i.e. how many times the predicate may succeed.
-For the purposes of this interface,
+For the purposes of the proposed interface,
 we have:
 ```pl semidet```
-succeeds 0 or 1 times;
+succeeds 0 or 1 times
+(used for checks);
 ```pl det```
-succeeds exactly once;
+succeeds exactly once
+(behave as functions);
 and
 ```pl nondet```
-succeeds 0 or more times.
+succeeds 0 or more times
+(may be used as generators).
 
 We remark that this interface is not minimal.
 For instance,
@@ -832,10 +918,10 @@ with ```pl put_triple_graph/3```,
 the input list,
 an empty graph (from ```pl empty_graph/1```)
 and
-the output graph
-(this is how we implement
+the resulting graph.
+This is how we implement
 ```pl list_to_graph/2```
-in the reference implementation).
+in the reference implementation.
 
 == Graph Querying <sec:interface-graph-query>
 
@@ -900,17 +986,20 @@ a non-production-ready turtle parser implementation,
 and
 some tests cases for both.
 All the code is available
-at the repository:
+at the repository
 #repo.
 
 The reference implementation resides
 in the file `semweb_unord_lists.pl`.
 We implemented the reference library
-using some list builtins
+using
+an unordered list
+for the graph representation,
+some list builtins
 and predicates from `library(reif)`~#cite(<indexingdif>).
 The implementation is straight forward,
 because of this,
-we will not talk about it any further.
+we will not discuss its implementation.
 
 == Turtle Parser
 
@@ -939,8 +1028,8 @@ with ```pl read/1```).
 
 We do not consider
 the parser implementation to be production-ready
-for some reasons.
-The first reason is that
+Because it has some implementation flaws.
+First,
 it throws debuging errors
 on syntax errors and on backtracking.
 Secondly,
@@ -955,10 +1044,12 @@ and we read the IRIs
 `thing`
 and
 `http://example.org/thing`,
-the parser will incorrectly produce
+the parser will produce
 `http://example.org/base/thing`
+(correct)
 and
-`http://example.org/base/http://example.org/thing`.
+`http://example.org/base/http://example.org/thing`
+(incorrect).
 And finally,
 it does not do any IRI normalization.
 For instance,
@@ -993,7 +1084,7 @@ interface with prefixes,
 such as
 ```pl xsd:integer```,
 instead of a full IRI.
-Cliopatria has support to prefixed IRIs.
+Cliopatria supports prefixed IRIs.
 
 The last idea is
 to define a DSL to describe the queries.
@@ -1001,82 +1092,10 @@ The existence of a DSL
 (similar to DCGs)
 would allow an implementation to:
 interpret the query
-(allowing to implement SPARQL's ```sparql LIMIT```);
+(allowing to implement SPARQL primitives,
+such as ```sparql LIMIT```,
+in Prolog);
 optimize the query before execution
-(similarly to Cliopatria's ```pl rdf_optimize/2```);
+(similar to Cliopatria's ```pl rdf_optimize/2```);
 translate queries to and from SPARQL,
 which shortens the path to implement federated queries.
-
-= Figures, Programs and Interactions
-
-#repl(
-  caption: [Some Queries and Answers from @prog:familytree-pl],
-)[```pl
-% is Helena male?
-?- male(helena).
-   false.
-
-% which Xs are male?
-?- male(X).
-   X = sergio           ;  X = milton           ;  X = george
-;  X = mario            ;  X = alexandre        ;  X = andre.
-
-% is Carmem parent of Ema and Ema female?
-?- parent_child(carmem, ema), female(ema).
-   true.
-
-% which Xs are the daughters of Carmem?
-?- parent_child(carmem, X), female(X).
-   X = sara             ;  X = ema.
-
-% which Xs are descendant of Lara?
-?- asc_desc(lara, X).
-   X = milton                       ;  X = george
-;  X = ana                          ;  X = andre
-;  X = carmem                       ;  X = sara
-;  X = ema                          ;  false.
-
-% which Xs are descendant of Lara and who are the intermediary descendants?
-?- asc_desc(lara, X, P).
-   X = milton, P = []               ;  X = george, P = [milton]
-;  X = ana,    P = [milton,george]  ;  X = andre,  P = [milton,george]
-;  X = carmem, P = [milton]         ;  X = sara,   P = [milton,carmem]
-;  X = ema,    P = [milton,carmem]  ;  false.
-```] <repl:familytree>
-
-#codefig(
-  caption: [Some SPARQL Queries to @prog:familytree-ttl]
-)[#{
-  let gutter = 0.5em;
-  let sep = { v(gutter); line(length: 75%, stroke: 0.25pt + color.gray); v(gutter); };
-  let queries = (
-    ```sparql
-# is Helena male?
-ASK { :helena :isA :male . }
-    ```, ```sparql
-# which Xs are male?
-SELECT ?x WHERE { ?x :isA :male . }
-    ```, ```sparql
-# is Carmem parent of Ema and Ema female?
-ASK { :carmem :parent_child :ema . :ema :isA :female . }
-    ```, ```sparql
-# which Xs are the daughters of Carmem?
-SELECT ?x { :carmem :parent_child ?x . ?x :isA :female . }
-    ```, ```sparql
-# which Xs are descendant of Lara?
-SELECT ?x { :lara :parent_child+ ?x . }
-    ```, ```sparql
-# which Xs are descendant of which Ys?
-SELECT ?y ?x { ?y :parent_child+ ?x . }
-    ```,
-  );
-  stack(dir: ttb,
-    ..queries.intersperse(sep)
-  )
-}] <prog:familytree-sparql>
-
-#codefig(
-  caption: [Reified Family Tree in Prolog],
-)[#{
-  raw(lang: "pl", read(resource("2familytree.pl")));
-}] <prog:reif-familytree-pl>
